@@ -239,7 +239,7 @@ def sim(policy,initBelief,initPose,allModBels,allModActs,numSteps = 20,useSoft=F
 		if(greedy):
 			act = getGreedyAction(b);
 		elif(MCTS):
-			act = onSolve.MCTS(b,d=4)[0];
+			act = onSolve.MCTS(b,d=2)[0];
 			if(act == 2):
 				act = 3; 
 			if(act == 3):
@@ -323,12 +323,12 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,useSoft=False,MCTS = False,
 	sys.path.append('../models/') 
 
 	if(useSoft):
-		policy = np.load("../policies/D4DiffsSoftmaxAlphas"+think+".npy");
+		policy = np.load("../policies/D4DiffsSoftmaxAlphas"+think+".npy",encoding='latin1');
 		modelModule = __import__('D4DiffsSoftmaxModel', globals(), locals(), ['ModelSpec'],0); 
 		modelClass = modelModule.ModelSpec;
 		modelName = 'D4DiffsSoftmax'
 	else:
-		policy = np.load("../policies/D4DiffsAlphas"+think+".npy");
+		policy = np.load("../policies/D4DiffsAlphas"+think+".npy",encoding='latin1');
 		modelModule = __import__('D4DiffsModel', globals(), locals(), ['ModelSpec'],0); 
 		modelClass = modelModule.ModelSpec;
 		modelName = 'D4Diffs'

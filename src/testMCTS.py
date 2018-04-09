@@ -285,36 +285,36 @@ def testMCTSSim2D():
 				#print(a.T); 
 				#RenderTreeGraph(a.T).to_picture('tree1.png');
 
-			allReward[count][step] = totalReward;  
+			allReward[count][step] = totalReward;
 
 		print(allReward[count][-1]); 
- 	
- 	averageAllReward = [0]*trailLength; 
- 	for i in range(0,trails):
- 		for j in range(0,trailLength):
- 			averageAllReward[j] += allReward[i][j]/trails; 
- 	allSigma = [0]*trailLength; 
 
- 	for i in range(0,trailLength):
- 		suma = 0; 
- 		for j in range(0,trails):
- 			suma += (allReward[j][i] - averageAllReward[i])**2; 
- 		allSigma[i] = np.sqrt(suma/trails); 
- 	UpperBound = [0]*trailLength; 
- 	LowerBound = [0]*trailLength; 
+	averageAllReward = [0]*trailLength;
+	for i in range(0,trails):
+		for j in range(0,trailLength):
+			averageAllReward[j] += allReward[i][j]/trails; 
+	allSigma = [0]*trailLength; 
 
- 	for i in range(0,trailLength):
- 		UpperBound[i] = averageAllReward[i] + allSigma[i]; 
- 		LowerBound[i] = averageAllReward[i] - allSigma[i]; 
+	for i in range(0,trailLength):
+		suma = 0; 
+		for j in range(0,trails):
+			suma += (allReward[j][i] - averageAllReward[i])**2; 
+		allSigma[i] = np.sqrt(suma/trails); 
+	UpperBound = [0]*trailLength; 
+	LowerBound = [0]*trailLength; 
 
- 	x = [i for i in range(0,trailLength)]; 
- 	plt.figure(); 
- 	plt.plot(x,averageAllReward,'g'); 
- 	plt.plot(x,UpperBound,'g--'); 
- 	plt.plot(x,LowerBound,'g--'); 
- 	plt.fill_between(x,LowerBound,UpperBound,color='g',alpha=0.25); 
+	for i in range(0,trailLength):
+		UpperBound[i] = averageAllReward[i] + allSigma[i]; 
+		LowerBound[i] = averageAllReward[i] - allSigma[i]; 
 
- 	plt.xlabel('Time Step'); 
+	x = [i for i in range(0,trailLength)]; 
+	plt.figure(); 
+	plt.plot(x,averageAllReward,'g'); 
+	plt.plot(x,UpperBound,'g--'); 
+	plt.plot(x,LowerBound,'g--'); 
+	plt.fill_between(x,LowerBound,UpperBound,color='g',alpha=0.25); 
+
+	plt.xlabel('Time Step'); 
 	plt.ylabel('Accumlated Reward'); 
 	plt.title('Average Accumulated Rewards over Time for: ' + str(trails) + ' simulations'); 
 
