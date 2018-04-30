@@ -298,7 +298,7 @@ class PolicyGenerator:
 		R = self.r; 
 		pz = self.pz; 
 
-		omega = 1/np.linalg.det(self.STM)
+		omega = np.linalg.det(self.STM)
 
 		als1 = [[[0 for i in range(0,len(pz))] for j in range(0,len(self.delA))] for k in range(0,len(G))]; 
 
@@ -326,7 +326,7 @@ class PolicyGenerator:
 							#Account for STM
 							meanPrime = (self.STM.I*smean.T).T.tolist()[0];
 							varPrime = (self.STM.I*sigvar*self.STM.T.I).tolist(); 
-							weightPrime = weight*omega; 
+							weightPrime = weight/omega; 
 
 							
 
@@ -339,7 +339,7 @@ class PolicyGenerator:
 	def preComputeAlsSoftmax(self):
 		G = self.Gamma;  
 
-		omega = 1/np.linalg.det(self.STM)
+		omega = np.linalg.det(self.STM)
 
 		als1 = [[[0 for i in range(0,self.pz.size)] for j in range(0,len(self.delA))] for k in range(0,len(G))]; 
 
@@ -359,7 +359,7 @@ class PolicyGenerator:
 						#Account for STM
 						meanPrime = (self.STM.I*mean.T).T.tolist()[0]; 
 						varPrime = (self.STM.I*var*self.STM.T.I).tolist(); 
-						weightPrime = weight*omega; 
+						weightPrime = weight/omega; 
 
 
 						als1[j][a][o].addG(Gaussian(mean,var,weight)); 

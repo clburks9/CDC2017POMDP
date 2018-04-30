@@ -306,7 +306,7 @@ class Softmax:
 		self.buildPointsModel(triPoints,steepness=steepness); 
 
 
-	def Estep(self,weight,bias,prior_mean,prior_var,alpha = 0.5,zeta_c = 1,softClassNum=0):
+	def Estep(self,weight,bias,prior_mean,prior_var,alpha = 0.5,zeta_c = 1,softClassNum=0,badStuff=False):
 		'''
 		Runs the Expectation step of the Variational Bayes algorithm
 		'''
@@ -356,7 +356,11 @@ class Softmax:
 			yc2[c] = weight[c]*(var + mean*mean)*weight[c] + 2*weight[c]*mean*bias[c] + bias[c]**2; 
 
 
-		return [mean,var,yc,yc2]; 
+		if(not badStuff):
+			return [mean,var,yc,yc2]; 
+		else:
+			gj = .5*(2*bias[softClassNum]- sum(bias)) + alpha*(len(weight)/2 - 1); 
+			return [mean,var,yc,yc2,gj,hj,Kj]
 
 
 	def Mstep(self,m,yc,yc2,zeta_c,alpha,steps):
@@ -560,7 +564,7 @@ class Softmax:
 
 		return mu_post, var_post, log_c_hat
 
-	def runVB(self,prior,softClassNum):
+	def runVB(self,prior,softClassNum,badStuff=False):
 		#For the one dimensional case only
 
 		post = GM(); 
@@ -576,7 +580,10 @@ class Softmax:
 			while(count < 100000):
 				
 				count = count+1; 
-				[mean,var,yc,yc2] = self.Estep(weight,bias,g.mean,g.var,alpha,zeta_c,softClassNum = softClassNum);
+				if(not badStuff):
+					[mean,var,yc,yc2] = self.Estep(weight,bias,g.mean,g.var,alpha,zeta_c,softClassNum = softClassNum);
+				else:
+					[mean,var,yc,yc2,gj,hj,Kj] = self.Estep(weight,bias,g.mean,g.var,alpha,zeta_c,softClassNum = softClassNum,badStuff=True);
 				[zeta_c,alpha] = self.Mstep(len(weight),yc,yc2,zeta_c,alpha,steps = 100);
 				logCHat = self.calcCHat(g.mean,g.var,mean,var,alpha,zeta_c,yc,yc2,mod=softClassNum); 
 				if(abs(prevLogCHat - logCHat) < 0.00001):
@@ -585,8 +592,11 @@ class Softmax:
 					prevLogCHat = logCHat; 
 
 			post.addG(Gaussian(mean,var,g.weight*np.exp(logCHat).tolist()[0][0]))
-			
-		return post; 
+		
+		if(not badStuff):
+			return post; 
+		else:
+			return [post,gj,hj,Kj]; 
 
 	def runVBND(self,prior,softClassNum):
 		#For the N dimensional Case

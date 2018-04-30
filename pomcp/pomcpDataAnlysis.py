@@ -43,7 +43,8 @@ def fillAndBoxPlots(data,averageFinalReward,averageAllReward,variance,sigma,allS
 		ax.set_ylabel('Average Reward'); 
 		ax.set_title('Average Final Rewards for Differencing Problem with POMCP')
 		ax.set_xlabel('Decision Time (s)'); 
-		plt.savefig('../pomcp/boxPlot.png',bbox_inches='tight');  
+		#plt.savefig('../pomcp/boxPlot.png',bbox_inches='tight');  
+		plt.show(); 
 
 
 if __name__ == '__main__':
