@@ -41,7 +41,7 @@ def fillAndBoxPlots(data,averageFinalReward,averageAllReward,variance,sigma,allS
 		ax.set_xticks(np.arange(3)); 
 		ax.set_xticklabels(('one','two','three')); 
 		ax.set_ylabel('Average Reward'); 
-		ax.set_title('Average Final Rewards for Differencing Problem with POMCP')
+		ax.set_title('Average Final Rewards for 2D Target Search Problem with POMCP')
 		ax.set_xlabel('Decision Time (s)'); 
 		#plt.savefig('../pomcp/boxPlot.png',bbox_inches='tight');  
 		plt.show(); 

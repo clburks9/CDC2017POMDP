@@ -183,7 +183,7 @@ class ModelSpec:
 			var = (np.identity(4)*.5).tolist(); 
 
 			for i in range(0,len(self.r)):
-				self.r[i].addG(Gaussian([-self.delA[i][0],-self.delA[i][1],0,0],var,100));
+				self.r[i].addG(Gaussian([-self.delA[i][0],-self.delA[i][1],0,0],var,10));
 
 
 			# print('Plotting Reward Model'); 

@@ -826,7 +826,7 @@ def test2DSoftmax():
 	a = Softmax(weight,bias);
 	[x1,y1,dom] = a.plot2D(low=low,high=high,delta = 0.1,vis=False); 
 
-	a.plot2D(low=low,high=high,delta = 0.1,vis=True); 
+	#a.plot2D(low=low,high=high,delta = 0.1,vis=True); 
 
 
 	#Define a prior
@@ -1092,8 +1092,8 @@ def testLogisticRegression():
 
 if __name__ == "__main__":
 
-	test1DSoftmax(); 
-	#test2DSoftmax(); 
+	#test1DSoftmax(); 
+	test2DSoftmax(); 
 	#test4DSoftmax();
 	#testRectangleModel();  
 	#testGeneralModel(); 

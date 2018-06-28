@@ -233,7 +233,7 @@ def sim(policy,initBelief,initPose,allModBels,allModActs,numSteps = 20,useSoft=F
 	#Simulate
 	for count in range(0,numSteps): 
 
-		print("Step {} of {}".format(count+1,numSteps)); 
+		#print("Step {} of {}".format(count+1,numSteps)); 
 
 		#Get Action
 		if(greedy):
@@ -252,7 +252,7 @@ def sim(policy,initBelief,initPose,allModBels,allModActs,numSteps = 20,useSoft=F
 		#Take action
 		x = (allModActs.STM * np.matrix(x).T).T.tolist()[0]; 
 
-		print(act,x); 
+		#print(act,x); 
 		x = np.random.multivariate_normal(np.array(x)+np.array(allModActs.delA[act]),allModActs.delAVar,size =1)[0].tolist();
 		
 
@@ -312,7 +312,7 @@ def sim(policy,initBelief,initPose,allModBels,allModActs,numSteps = 20,useSoft=F
 	return [allB,allX,allXInd,allAct,allReward]; 
 
 
-def runMultiSim(think,use,simCount=10,simSteps = 100,useSoft=False,MCTS = False,greedy = False):
+def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,MCTS = False,greedy = False):
 	#run simulations
 	allSimRewards = [];
 	allSimAct = []; 
@@ -397,34 +397,34 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,useSoft=False,MCTS = False,
 	if(think=='NCP'): 
 		if(use=='NCP'):
 			if(greedy):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP_Greedy' +  '.npy','w+'); 
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP_Greedy' + str(alphaNum)+  '.npy','w+'); 
 			elif(MCTS):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP_MCTS' +  '.npy','w+'); 
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP_MCTS' + str(alphaNum)+ '.npy','w+'); 
 			else:
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP' +  '.npy','w+');
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP' + str(alphaNum)+ '.npy','w+');
 		
 		else:
 			if(greedy):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV_Greedy' +  '.npy','w+');
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV_Greedy' + str(alphaNum)+ '.npy','w+');
 			elif(MCTS):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV_MCTS' +  '.npy','w+'); 
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV_MCTS' + str(alphaNum)+'.npy','w+'); 
 			else:
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV' +  '.npy','w+'); 
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV' +  str(alphaNum)+'.npy','w+'); 
 	else:
 		if(use=='NCP'):
 			if(greedy):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP_Greedy' +  '.npy','w+'); 
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP_Greedy' + str(alphaNum)+ '.npy','w+'); 
 			elif(MCTS):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP_MCTS' +  '.npy','w+'); 
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP_MCTS' + str(alphaNum)+ '.npy','w+'); 
 			else:
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP' +  '.npy','w+'); 
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP' + str(alphaNum)+ '.npy','w+'); 
 		else:
 			if(greedy):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV_Greedy' +  '.npy','w+');
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV_Greedy' + str(alphaNum)+ '.npy','w+');
 			elif(MCTS):
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV_MCTS' +  '.npy','w+');
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV_MCTS' + str(alphaNum)+ '.npy','w+');
 			else:
-				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV' +  '.npy','w+');
+				f = open('../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV' + str(alphaNum)+ '.npy','w+');
 	np.save(f,dataSave); 
 	f.close(); 
 
@@ -444,7 +444,7 @@ if __name__ == '__main__':
 	use = 'NCP'
 	soft = False; 
 	greedy = False;
-	MCTS = True 
+	MCTS = False 
 
 	if(len(sys.argv)>1):
 		think = sys.argv[1]; 
@@ -464,7 +464,7 @@ if __name__ == '__main__':
 
 
 	print("Simulating Policy with: Think={}, Use={}, soft={}, MCTS={}, greedy={}".format(think,use,soft,MCTS,greedy)); 
-	runMultiSim(think=think,use=use,simCount=10,simSteps=10,useSoft=soft,MCTS = MCTS,greedy=greedy);  
+	runMultiSim(think=think,use=use,simCount=10,simSteps=100,alphaNum=2,useSoft=soft,MCTS = MCTS,greedy=greedy);  
 
 
 	# a = np.load("../policies/D4DiffsAlphas1.npy");

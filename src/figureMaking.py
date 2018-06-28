@@ -9,7 +9,7 @@ Making figures for the TRO paper
 **************************************************************
 '''
 
-from __future__ import division
+#from __future__ import division
 
 import numpy as np; 
 import copy
@@ -19,6 +19,11 @@ from softmaxModels import Softmax
 from gaussianMixtures import Gaussian, GM
 from matplotlib.patches import Ellipse
 from matplotlib.gridspec import GridSpec
+from copy import deepcopy
+from testFunctions import *
+from testArenaSep import *
+import time
+
 
 def remakeAhmedTROSoftamx():
 
@@ -109,7 +114,7 @@ def remakeTwoDimBarGraph():
 	ax.set_xticks(np.arange(3)); 
 	ax.set_xticklabels(('GM','VB','Greedy')); 
 	ax.set_ylabel('Average Reward'); 
-	ax.set_title('Average Final Rewards for the Differencing Problem')
+	ax.set_title('Average Final Rewards for the 2D Target Search Problem')
 
 	plt.show();
 
@@ -212,7 +217,7 @@ def remakeGMToSoftmaxComp():
 
 	#Plotting 
 	bbox={'fc':'0.8','pad':0}; 
-	textProps={'ha':'center','va':'center'}; 
+	textProps={'ha':'center','va':'center','fontsize':20}; 
 
 
 	fig,axarr = plt.subplots(1,4,sharey=False); 
@@ -315,10 +320,188 @@ def remakeGMToSoftmaxComp():
 	plt.tight_layout();
 	plt.savefig("../img/ColinearBanner_{}.pdf".format(3)); 
 
+
+def remake2DFusionPlot():
+	
+	#Specify Parameters
+	#2 1D robots obs model
+	#weight = [[0.6963,-0.6963],[-0.6963,0.6963],[0,0]]; 
+	#bias = [-0.3541,-0.3541,0]; 
+	
+	#Colinear Problem
+	weight = [[-1.3926,1.3926],[-0.6963,0.6963],[0,0]];
+	bias = [0,.4741,0]; 
+	low = [0,0]; 
+	high = [5,5]; 
+
+	#Differencing Problem
+	#weight = [[0,1],[-1,1],[1,1],[0,2],[0,0]]
+	#bias = [1,0,0,0,0]; 
+	# low = [-5,-5]; 
+	# high = [5,5]; 
+
+	MMS = True; 
+	softClass = 2; 
+	detect = 0; 
+	
+	res = 100; 
+	steep = 1.5; 
+	for i in range(0,len(weight)):
+		for j in range(0,len(weight[i])):
+			weight[i][j] = weight[i][j]*steep; 
+		bias[i] = bias[i]*steep; 
+
+	#Define Likelihood Model
+	a = Softmax(weight,bias);
+	[x1,y1,dom] = a.plot2D(low=low,high=high,delta = 0.1,vis=False); 
+
+
+
+	#a.plot2D(low=low,high=high,delta = 0.1,vis=True); 
+
+
+	#Define a prior
+	prior = GM(); 
+	prior.addG(Gaussian([2,4],[[1,0],[0,1]],1)); 
+	prior.addG(Gaussian([4,2],[[1,0],[0,1]],1)); 
+	prior.addG(Gaussian([1,3],[[1,0],[0,1]],1));
+	[x2,y2,c2] = prior.plot2D(low = low,high = high,res = res, vis = False); 
+
+	if(MMS):
+		#run Variational Bayes
+		if(detect == 0):
+			post1 = a.runVBND(prior,0); 
+			post2 = a.runVBND(prior,2); 
+			post1.addGM(post2); 
+		else:
+			post1 = a.runVBND(prior,1); 
+	else:
+		post1 = a.runVBND(prior,softClass)
+	post1.normalizeWeights(); 
+	[x3,y3,c3] = post1.plot2D(low = low,high = high,res = res, vis = False); 
+	post1.display(); 
+
+	softClassLabels = ['Near','Left','Right','Up','Down']; 
+	detectLabels = ['No Detection','Detection']
+	#plot everything together
+	fig,axarr = plt.subplots(1,3,sharex= True,sharey = True);
+	#fig.set_size_inches(4.5,9); 
+	fig.set_size_inches(11,3)
+
+	axarr[0].contourf(x2,y2,c2,cmap = 'viridis'); 
+	axarr[0].set_xlabel('Prior GM'); 
+	axarr[0].xaxis.set_label_coords(.5, -0.09)
+	fig.suptitle("2D Fusion of a Gaussian Prior with a Softmax Likelihood",fontsize=15)
+	axarr[1].contourf(x1,y1,dom,cmap = 'inferno'); 
+	axarr[1].set_xlabel('Likelihood Softmax'); 
+	axarr[1].xaxis.set_label_coords(.5, -0.09)
+	axarr[2].contourf(x3,y3,c3,cmap = 'viridis'); 
+	axarr[2].set_xlabel("Posterior: No Detect");  
+	axarr[2].xaxis.set_label_coords(.5, -0.09)
+	#fig.title('2D Fusion of a Gaussian Prior with a Softmax Likelihood')
+	
+	#plt.tight_layout();
+	plt.savefig("../img/VBFusion2D.pdf");
+	#plt.show();
+
+
+
+def remakeCondensationPlot():
+	
+	start = 400; 
+
+	#make random mixture on bounds 0-5,0-5
+	#orig = createRandomMixture(size=start,dims=2); 
+	diag = 0.005; 
+	diagOn = 0.01; 
+	orig = GM(); 
+	for i in range(0,start//4):
+		mean = [np.random.random()*2,np.random.random()*2]
+		tmp = np.random.random()*diag*2 - diag
+		var = [[np.random.random()*diagOn+diag,tmp],[tmp,np.random.random()*diagOn+diag]]; 
+		weight = np.sqrt(np.random.random()); 
+		orig.addG(Gaussian(mean,var,weight));
+	for i in range(0,start//4):
+		mean = [np.random.random()*2+2.5,np.random.random()*2+2.5]
+		tmp = np.random.random()*diag*2 - diag
+		var = [[np.random.random()*diagOn+diag,tmp],[tmp,np.random.random()*diagOn+diag]]; 
+		weight = np.sqrt(np.random.random()); 
+		orig.addG(Gaussian(mean,var,weight)); 
+
+	for i in range(0,start//4):
+		mean = [np.random.random()*2,np.random.random()*2+2.5]
+		tmp = np.random.random()*diag*2 - diag
+		var = [[np.random.random()*diagOn+diag,tmp],[tmp,np.random.random()*diagOn+diag]]; 
+		weight = np.sqrt(np.random.random()); 
+		orig.addG(Gaussian(mean,var,weight));  
+
+
+	for i in range(0,start//4):
+		mean = [np.random.random()*2+2.5,np.random.random()*2]
+		tmp = np.random.random()*diag*2 - diag
+		var = [[np.random.random()*diagOn+diag,tmp],[tmp,np.random.random()*diagOn+diag]]; 
+		weight = np.sqrt(np.random.random()); 
+		orig.addG(Gaussian(mean,var,weight));  
+
+	orig.normalizeWeights(); 
+	
+	runCopy = deepcopy(orig); 
+	hybridCopy = deepcopy(orig); 
+
+	mid = 4; 
+	final = 5; 
+
+	#time and ISD for both
+	print("Running Baseline..."); 
+	runOpen = time.clock(); 
+	runCopy.condense(mid*final); 
+	runTime = time.clock() - runOpen;
+
+	print("Baseline Time: {}".format(runTime)); 
+
+	print("Running Hybrid..."); 
+	hybridOpen = time.clock(); 
+	hybridClusters = cluster(hybridCopy,euclid,k=mid,maxIter=100); 
+	hybridCopy = conComb(hybridClusters,mid*final,start); 
+	hybridTime = time.clock() - hybridOpen; 
+
+	print("Hybrid Time: {}".format(hybridTime)); 
+
+	print("Finding Baseline ISD..."); 
+	runISD = orig.ISD(runCopy); 
+	print("Baseline ISD: {}".format(runISD)); 
+
+	print("Finding Hybrid ISD...");
+	hybridISD = orig.ISD(hybridCopy); 
+	print("Hybrid ISD: {}".format(hybridISD)); 
+
+	[origX,origY,origC] = orig.plot2D(low=[0,0],high=[5,5],vis=False); 
+	[runCopyX,runCopyY,runCopyC] = runCopy.plot2D(low=[0,0],high=[5,5],vis=False); 
+	[hybridCopyX,hybridCopyY,hybridCopyC] = hybridCopy.plot2D(low=[0,0],high=[5,5],vis=False); 
+
+	fig,axarr = plt.subplots(1,3,sharey = True); 
+	axarr[0].contourf(origX,origY,origC); 
+	axarr[0].set_title("Original Mixture"); 
+	axarr[0].set_aspect('equal'); 
+	axarr[1].contourf(runCopyX,runCopyY,runCopyC);
+	axarr[1].set_xlabel('ISD: {:.2e}'.format(runISD)); 
+	axarr[1].set_title("Runnall's: {:.2f} seconds".format(runTime)); 
+	axarr[1].set_aspect('equal'); 
+	axarr[2].contourf(hybridCopyX,hybridCopyY,hybridCopyC);
+	axarr[2].set_xlabel('ISD: {:.2e}'.format(hybridISD)); 
+	axarr[2].set_title("Hybrid: {:.2f} seconds".format(hybridTime));
+	axarr[2].set_aspect('equal'); 
+	fig.suptitle("Condensation of {} mixands to {}".format(start,mid*final)); 
+	#plt.savefig('../img/CondensationRemake.png',figsize = (9,3)); 
+	plt.show(); 
+
+
 if __name__ == '__main__':
 	#remakeAhmedTROSoftamx(); 
 	#remakeOneDimBarGraph(); 
-	#remakeTwoDimBarGraph(); 
-	#remakePOMCPBarGraph(); 
-	remakeGMToSoftmaxComp(); 
+	remakeTwoDimBarGraph(); 
+	#remakeGMToSoftmaxComp();
+	#remake2DFusionPlot();
+	#remakeCondensationPlot(); 
+
 
