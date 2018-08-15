@@ -102,7 +102,7 @@ class ModelSpec:
 			length = 2; 
 			width = 2; 
 			orient = 0; 
-			steep = 10; 
+			steep = 1; 
 
 			self.pz = Softmax(); 
 			self.pz.buildOrientedRecModel(cent,orient,length,width,steepness=steep); 

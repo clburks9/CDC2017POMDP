@@ -4,13 +4,37 @@ import numpy as np;
 import copy
 import matplotlib.pyplot as plt
 import sys
+from gaussianMixtures import GM,Gaussian
 sys.path.append('../src/'); 
 
 
 #from scipy import stats
-import pyvttbl as pt
+#import pyvttbl as pt
 from collections import namedtuple
 
+def findMixtureParams(mixture):
+
+	#cut the mixture to just the robber dimensions
+	newMixture = GM(); 
+	for g in mixture:
+		tmpMean = [g.mean[0],g.mean[1]]; 
+		tmpVar = [[g.var[0][0],g.var[0][1]],[g.var[1][0],g.var[1][1]]]; 
+		newMixture.addG(Gaussian(tmpMean,tmpVar,g.weight)); 
+
+	#cut the mixture to just the robber dimensions
+
+	#mean is a weighted average of means
+	mixMean = np.zeros(2);
+	for g in newMixture:
+		mixMean += np.array(g.mean)*g.weight; 
+
+	#Variance is the weighted sum of variances plus the weighted sum of outer products of the difference of the mean and mixture mean
+	mixVar = np.zeros(shape=(2,2)); 
+	for g in newMixture:
+		mixVar += np.matrix(g.var)*g.weight; 
+		mixVar += (np.matrix(g.mean)-np.matrix(mixMean)).T*(np.matrix(g.mean)-np.matrix(mixMean))*g.weight; 
+
+	return mixMean,mixVar;
 
 def heatGrid(data,averageFinalReward):
 	grid = [[averageFinalReward['PP'],averageFinalReward['PV']],[averageFinalReward['VP'],averageFinalReward['VV']]]; 
@@ -114,53 +138,162 @@ def anova(data):
 
 	print(aov)
 
+
+def showBoundedRobberEstimate(data):
+
+
+
+	dist = {}; 
+	for key in data.keys():
+		dist[key] = {'means':[],'vars':[]}; 
+		
+		bels = data[key]['Beliefs'][0];
+		XD = data[key]['States(Ind)'][0][0]; 
+		YD = data[key]['States(Ind)'][0][1]; 
+		#print(len(robs),len(cops),len(bels)); 
+		for i in range(0,100):
+			mixMean,mixVar = findMixtureParams(bels[i]); 
+			dist[key]['means'].append(mixMean); 
+			dist[key]['vars'].append([mixVar[0][0],mixVar[1][1]]); 
+
+	
+	fig,axarr = plt.subplots(3,4,sharex = True); 
+	legend = []; 
+	colors = {'NCP/NCP':'b','NCV/NCV':'g','NCP/NCV':'r','NCV/NCP':'m'};
+	keys = data.keys(); 
+
+	allKeys = ['NCP/NCP','NCP/NCV','NCV/NCP','NCV/NCV']
+
+	for key in allKeys:
+		x = [i for i in range(0,100)]; 
+		ind = allKeys.index(key); 
+
+
+		XD = data[key]['States(Ind)'][0][0][0:100]; 
+		YD = data[key]['States(Ind)'][0][1][0:100]; 
+		m0 = [dist[key]['means'][i][0] for i in range(0,len(x))]; 
+		m1 = [dist[key]['means'][i][1] for i in range(0,len(x))]; 
+		howManySigma = 2; 
+
+		upperBound0 = [dist[key]['means'][i][0] + howManySigma*np.sqrt(dist[key]['vars'][i][0]) for i in range(0,len(x))];
+		upperBound1 = [dist[key]['means'][i][1] + howManySigma*np.sqrt(dist[key]['vars'][i][1]) for i in range(0,len(x))]; 
+		lowerBound0 = [dist[key]['means'][i][0] - howManySigma*np.sqrt(dist[key]['vars'][i][0]) for i in range(0,len(x))]; 
+		lowerBound1 = [dist[key]['means'][i][1] - howManySigma*np.sqrt(dist[key]['vars'][i][1]) for i in range(0,len(x))];  
+
+		axarr[0][ind].plot(x,XD,'k--'); 
+		axarr[1][ind].plot(x,YD,'k--'); 
+		axarr[0][ind].plot(x,m0,c=colors[key]); 
+		axarr[1][ind].plot(x,m1,c=colors[key]); 
+
+
+		axarr[2][ind].plot(x,data[key]['Rewards'][0:100],c=colors[key],linewidth = 3)
+		zeros = [0]*100; 
+		axarr[2][ind].fill_between(x,zeros,data[key]['Rewards'][0:100],color=colors[key],alpha=0.25)
+		axarr[2][ind].legend(["Cumulative Reward"],loc='upper left',fontsize=10); 
+		axarr[2][ind].set_ylim([0,125]); 
+		axarr[1][ind].set_ylim([-5,5]);
+		axarr[0][ind].set_ylim([-5,5]);
+
+
+
+		if(ind == 1 or ind == 2 or ind == 3):
+			axarr[0][ind].yaxis.set_major_formatter(plt.NullFormatter()); 
+			axarr[1][ind].yaxis.set_major_formatter(plt.NullFormatter());  
+			#axarr[2][ind].yaxis.set_major_formatter(plt.NullFormatter()); 
+
+		plt.subplots_adjust(left = 0.05,bottom = 0.06,wspace=0.1,hspace=0.06,top=.9,right=0.99); 
+
+		axarr[0][ind].fill_between(x,lowerBound0,upperBound0,color=colors[key],alpha=0.25);
+		axarr[1][ind].fill_between(x,lowerBound1,upperBound1,color=colors[key],alpha=0.25); 
+		labels = ('True State','Mean',r'2$\sigma$')
+		axarr[0][ind].legend(labels,loc='upper right',fontsize=10); 
+		axarr[1][ind].legend(labels,loc='upper right',fontsize=10); 
+
+	#allKeys = ['NCP/NCP','NCP/NCV','NCV/NCP','NCV/NCV']
+	axarr[0][0].set_ylabel(r'$\Delta$X Estimate',fontsize=20); 
+	axarr[1][0].set_ylabel(r'$\Delta$Y Estimate',fontsize=20); 
+	axarr[2][0].set_ylabel('Reward',fontsize=20)
+	# for i in range(0,len(allKeys)):
+	# 	axarr[0][i].set_title(allKeys[i]); 
+	axarr[0][0].set_title('NCP Policy, NCP Actual',fontsize=16); 
+	axarr[0][1].set_title("NCP Policy, NCV Actual",fontsize=16); 
+	axarr[0][2].set_title("NCV Policy, NCP Actual",fontsize=16); 
+	axarr[0][3].set_title("NCV Policy, NCV Actual",fontsize=16); 
+	axarr[2][0].set_xlabel('Time Step',fontsize=16)
+	axarr[2][1].set_xlabel('Time Step',fontsize=16)
+	axarr[2][2].set_xlabel('Time Step',fontsize=16)
+	axarr[2][3].set_xlabel('Time Step',fontsize=16)
+	plt.suptitle("Linear State Dynamics Estimates and Rewards",fontsize=20)
+
+	plt.show(); 
+
 if __name__ == '__main__':
 
 
 	data = {}; 
-	data['PP'] = np.load('../results/D4DiffsSoftmax/D4DiffsSoftmax_Data_ThinkNCP_UseNCP.npy').tolist(); 
-	data['VV'] = np.load('../results/D4DiffsSoftmax/D4DiffsSoftmax_Data_ThinkNCV_UseNCV.npy').tolist();
-	data['PV'] = np.load('../results/D4DiffsSoftmax/D4DiffsSoftmax_Data_ThinkNCP_UseNCV.npy').tolist();  
-	data['VP'] = np.load('../results/D4DiffsSoftmax/D4DiffsSoftmax_Data_ThinkNCV_UseNCP.npy').tolist(); 
+	data['NCP/NCP'] = np.load('../results/D4DiffsSoftmax/Good_Old_Data/D4DiffsSoftmax_Data_ThinkNCP_UseNCP.npy',encoding = 'latin1').tolist(); 
+	data['NCV/NCV'] = np.load('../results/D4DiffsSoftmax/Good_Old_Data/D4DiffsSoftmax_Data_ThinkNCV_UseNCV.npy',encoding = 'latin1').tolist();
+	data['NCP/NCV'] = np.load('../results/D4DiffsSoftmax/Good_Old_Data/D4DiffsSoftmax_Data_ThinkNCP_UseNCV.npy',encoding = 'latin1').tolist();  
+	data['NCV/NCP'] = np.load('../results/D4DiffsSoftmax/Good_Old_Data/D4DiffsSoftmax_Data_ThinkNCV_UseNCP.npy',encoding = 'latin1').tolist(); 
 
-	averageFinalReward = {'PP':0,'PV':0,'VP':0,'VV':0}; 
-	averageAllReward = {'PP':[0]*101,'PV':[0]*101,'VP':[0]*101,'VV':[0]*101}; 
+	# for i in range(0,len(data['NCV/NCP']['Rewards'])):
+	# 	print(i,data['NCV/NCP']['Rewards'][i][-1])
 
+	exampleData = {}; 
+	#inds = {'NCP/NCP':25,'NCV/NCV':77,'NCP/NCV':80,'NCV/NCP':92};
+	inds = {'NCP/NCP':25,'NCV/NCV':78,'NCP/NCV':80,'NCV/NCP':92};
+	for key in inds.keys():
+		exampleData[key] = {}; 
 
-	for key in data.keys():
-		for i in range(0,len(data[key]['Rewards'])): 
-			#print(len(data[key]['Rewards'])); 
-			averageFinalReward[key] += data[key]['Rewards'][i][-1]/len(data[key]['Rewards']); 
-
-		for i in range(0,len(data[key]['Rewards'])):
-			for j in range(0,len(data[key]['Rewards'][i])):
-				#print(len(averageAllReward[key]),len(data[key]['Rewards'][i]),len(data[key]['Rewards'])); 
-				averageAllReward[key][j] += data[key]['Rewards'][i][j]/len(data[key]['Rewards']); 
-
-
-	variance = {'PP':0,'PV':0,'VP':0,'VV':0}; 
-	sigma = {'PP':0,'PV':0,'VP':0,'VV':0}; 
-	allSigma = {'PP':[0]*101,'PV':[0]*101,'VP':[0]*101,'VV':[0]*101}; 
+	for key in inds.keys():
+		for key2 in data['NCP/NCP'].keys():
+			exampleData[key][key2] = data[key][key2][inds[key]];
+	
+	for key in inds.keys():
+		print(key,exampleData[key]['Rewards'][-1]); 
 
 
-	for key in data.keys():
-		suma = 0; 
-		for i in range(0,len(data[key]['Rewards'])):
-			suma+=(data[key]['Rewards'][i][-1] - averageFinalReward[key])**2; 
-		variance[key] = suma/len(data[key]['Rewards']); 
-		sigma[key] = np.sqrt(variance[key]); 
+	# averageFinalReward = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
+	# averageAllReward = {'NCP/NCP':[0]*101,'NCP/NCV':[0]*101,'NCV/NCP':[0]*101,'NCV/NCV':[0]*101}; 
 
-		for i in range(0,len(data[key]['Rewards'][0])):
-			suma = 0; 
-			for j in range(0,len(data[key]['Rewards'])):
-				suma += (data[key]['Rewards'][j][i] - averageAllReward[key][i])**2; 
-			allSigma[key][i] = np.sqrt(suma/len(data[key]['Rewards'])); 
+	# print(data['NCP/NCP']['Rewards'][0])
+
+	# for key in data.keys():
+	# 	for i in range(0,len(data[key]['Rewards'])): 
+	# 		#print(len(data[key]['Rewards'])); 
+	# 		averageFinalReward[key] += data[key]['Rewards'][i][-1]/len(data[key]['Rewards']); 
+
+	# 	for i in range(0,len(data[key]['Rewards'])):
+	# 		for j in range(0,len(data[key]['Rewards'][i])):
+	# 			#print(len(averageAllReward[key]),len(data[key]['Rewards'][i]),len(data[key]['Rewards'])); 
+	# 			averageAllReward[key][j] += data[key]['Rewards'][i][j]/len(data[key]['Rewards']); 
+
+
+	# variance = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
+	# sigma = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
+	# allSigma = {'NCP/NCP':[0]*101,'NCP/NCV':[0]*101,'NCV/NCP':[0]*101,'NCV/NCV':[0]*101}; 
+
+
+	# for key in data.keys():
+	# 	suma = 0; 
+	# 	for i in range(0,len(data[key]['Rewards'])):
+	# 		suma+=(data[key]['Rewards'][i][-1] - averageFinalReward[key])**2; 
+	# 	variance[key] = suma/len(data[key]['Rewards']); 
+	# 	sigma[key] = np.sqrt(variance[key]); 
+
+	# 	for i in range(0,len(data[key]['Rewards'][0])):
+	# 		suma = 0; 
+	# 		for j in range(0,len(data[key]['Rewards'])):
+	# 			suma += (data[key]['Rewards'][j][i] - averageAllReward[key][i])**2; 
+	# 		allSigma[key][i] = np.sqrt(suma/len(data[key]['Rewards'])); 
 
 
 
-	heatGrid(data,averageFinalReward);
-	fillAndBoxPlots(data,averageFinalReward,averageAllReward,variance,sigma,allSigma);
 
+	#heatGrid(data,averageFinalReward);
+	#fillAndBoxPlots(data,averageFinalReward,averageAllReward,variance,sigma,allSigma);
+
+	showBoundedRobberEstimate(exampleData); 
 
 
 
