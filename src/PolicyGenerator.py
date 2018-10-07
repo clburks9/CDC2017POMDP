@@ -12,6 +12,9 @@ will have been removed
 Input: -n <problemName> -b <initialBeliefNumber> -a <alphaSaveNumber> -m <maxNumMixands> -f <finalNumMixands> -g <generateNewModels> -s <useSoftmaxModels>
 Output: solve function
 <problemName>Alphas<alphaSaveNumber>.npy, a file containing the policy found by the generator
+
+Version 1.2: Added Max Times
+
 ************************************************************************************************************************************************************
 '''
 
@@ -20,7 +23,7 @@ Output: solve function
 __author__ = "Luke Burks"
 __copyright__ = "Copyright 2016, Cohrint"
 __license__ = "GPL"
-__version__ = "1.1"
+__version__ = "1.2"
 __maintainer__ = "Luke Burks"
 __email__ = "clburks9@gmail.com"
 __status__ = "Development"
@@ -70,15 +73,17 @@ class PolicyGenerator:
 		self.iterations = 1000; 
 		self.useSoft = False; 
 
+		self.maxTime = 0; 
+
 		#Grab command line arguments for problem
 		try:
-		  opts, args = getopt.getopt(argv[1:],"hn:b:a:m:f:g:s:",["name=","belNum=","alSaveNum=",'maxMix=','finalMix=','gen=','softmax='])
+		  opts, args = getopt.getopt(argv[1:],"hn:b:a:m:f:g:s:t:",["name=","belNum=","alSaveNum=",'maxMix=','finalMix=','gen=','softmax=','maxTime='])
 		except getopt.GetoptError:
-		  print 'PolicyGenerator.py -n <problemName> -b <initialBeliefNumber> -a <alphaSaveNumber> -m <maxNumMixands> -f <finalNumMixands> -g <generateNewModels> -s <useSoftmaxModels>'
+		  print('PolicyGenerator.py -n <problemName> -b <initialBeliefNumber> -a <alphaSaveNumber> -m <maxNumMixands> -f <finalNumMixands> -g <generateNewModels> -s <useSoftmaxModels> -t <maxTimeSeconds>');
 		  sys.exit(2)
 		for opt, arg in opts:
 		  if opt == '-h':
-		    print 'PolicyGenerator.py -n <problemName> -b <initialBeliefNumber> -a <alphaSaveNumber> -m <maxNumMixands> -f <finalNumMixands> -g <generateNewModels> -s <useSoftmaxModels>'
+		    print('PolicyGenerator.py -n <problemName> -b <initialBeliefNumber> -a <alphaSaveNumber> -m <maxNumMixands> -f <finalNumMixands> -g <generateNewModels> -s <useSoftmaxModels> -t <maxTimeSeconds>');
 		    sys.exit()
 		  elif opt in ("-n", "--name"):
 		    problemName = arg
@@ -100,6 +105,8 @@ class PolicyGenerator:
 		  		self.useSoft = True; 
 		  	else:
 		  		self.useSoft = False; 
+		  elif opt in ("-t","--maxTimeSeconds"):
+		  	self.maxTime = int(arg); 
 
 		if(problemName == ''):
 			print('Input Problem Name'); 
@@ -120,7 +127,7 @@ class PolicyGenerator:
 
 
 		#Grab Modeling Code
-		allMod = modelClass(mode=self.alphaNum); 
+		allMod = modelClass(); 
 
 		#Build Transition Model
 		allMod.buildTransition(); 
@@ -168,14 +175,25 @@ class PolicyGenerator:
 	#Generate the approximate POMDP policy
 	def solve(self,verbose=True):
 
+		if(not os.path.isdir('../policies/'+self.problemName)):
+			os.mkdir('../policies/'+self.problemName); 
+
+
 		startTime = 0; 
 		iterationTimes = []; 
+		condensationTimes = []; 
 		for counter in range(0,self.iterations):
 			
 			if(counter==0):
 				iterationTimes = [startTime]; 
 			else:
-				iterationTimes.append(time.clock()-iterationTimes[counter-1]); 
+				iterationTimes.append(time.clock()-iterationTimes[-1]); 
+
+			if(self.maxTime > 0):
+				if(iterationTimes[-1] > self.maxTime):
+					print("Time Limit Reached, Exiting"); 
+					break; 
+
 
 			if(self.exitFlag):
 				break; 
@@ -242,6 +260,8 @@ class PolicyGenerator:
 					GammaNew += [al];
 
 
+
+
 			
 			if(verbose and self.exitFlag == False):
 				print("Number of Alphas: " + str(len(GammaNew))); 
@@ -250,6 +270,9 @@ class PolicyGenerator:
 					av += GammaNew[i].size; 
 				av = av/len(GammaNew);  
 				print("Average number of mixands: " + str(av)); 
+
+			condStartTime = time.clock(); 
+
 			if(self.exitFlag == False):
 				if(counter < self.iterations-1):
 					for i in range(0,len(GammaNew)):
@@ -260,6 +283,8 @@ class PolicyGenerator:
 					for i in range(0,len(GammaNew)):
 						#GammaNew[i].condense(max_num_mixands=self.finalMix);
 						GammaNew[i] = GammaNew[i].kmeansCondensationN(k = self.finalMix); 
+
+			condensationTimes.append(time.clock() - condStartTime); 
 
 			if(verbose and self.exitFlag == False):
 				#GammaNew[0].display(); 
@@ -273,20 +298,20 @@ class PolicyGenerator:
 
 
 			if(self.exitFlag == False):
-				f = open(self.alSave,"w"); 
+				#f = open(self.alSave,"w"); 
 				self.Gamma = copy.deepcopy(GammaNew); 
-				np.save(f,self.Gamma); 
-				f.close(); 
+				np.save('../policies/' + self.problemName + '/' + self.problemName + 'Alphas' + self.alphaNum + 'Step' + str(counter) + '.npy',self.Gamma); 
+				#f.close(); 
 				
 		if(not os.path.isdir('../results/'+self.problemName)):
 			os.mkdir('../results/'+self.problemName); 
-		f = open('../results/'+self.problemName+'/' + self.problemName + '_Timing' + self.alphaNum +  '.npy','w+'); 
-		np.save(f,iterationTimes);
-		f.close();
+		#f = open('../results/'+self.problemName+'/' + self.problemName + '_Timing' + self.alphaNum +  '.npy','w+'); 
+		np.save('../results/'+self.problemName+'/' + self.problemName + '_Timing' + self.alphaNum +  '.npy',iterationTimes);
+		np.save('../results/'+self.problemName+'/' + self.problemName + '_Cond_Timing' + self.alphaNum + '.npy',condensationTimes); 
 
-		f = open(self.alSave,"w+"); 
-		np.save(f,self.Gamma); 
-		f.close(); 
+		#f = open(self.alSave,"w+"); 
+		np.save(self.alSave,self.Gamma); 
+		#f.close(); 
 
 
 	#Compute Intermediate Alpha functions for each action, observation, and previous alpha
@@ -430,7 +455,7 @@ class PolicyGenerator:
 			print("Hard STOP intitiated..."); 
 			sys.exit(-1); 
 		print(""); 
-		s = raw_input("Confirm STOP? (Y/N)"); 
+		s = input("Confirm STOP? (Y/N)"); 
 		if(s.upper() == 'Y'):
 			print("Stopping Policiy Generation and printing to file"); 
 			self.exitFlag = True; 
