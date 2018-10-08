@@ -179,15 +179,18 @@ class PolicyGenerator:
 			os.mkdir('../policies/'+self.problemName); 
 
 
-		startTime = 0; 
+		startTime = time.time(); 
 		iterationTimes = []; 
 		condensationTimes = []; 
 		for counter in range(0,self.iterations):
 			
 			if(counter==0):
-				iterationTimes = [startTime]; 
+				iterationTimes = [0]; 
 			else:
-				iterationTimes.append(time.clock()-iterationTimes[-1]); 
+				iterationTimes.append(time.time()-startTime); 
+			# iterationTimes.append(time.time()); 
+
+			#print(iterationTimes)
 
 			if(self.maxTime > 0):
 				if(iterationTimes[-1] > self.maxTime):
@@ -200,8 +203,9 @@ class PolicyGenerator:
 
 			if(verbose):
 				print("Iteration: " + str(counter+1)); 
-			else:
-				print("Iteration: " + str(counter+1)); 
+				print("Starting at: {} of {} seconds".format((int(iterationTimes[-1]-iterationTimes[0])),self.maxTime))
+			# else:
+			# 	print("Iteration: " + str(counter+1)); 
 			
 			bestAlphas = [GM()]*len(self.B); 
 			Value = [0]*len(self.B); 
@@ -271,7 +275,7 @@ class PolicyGenerator:
 				av = av/len(GammaNew);  
 				print("Average number of mixands: " + str(av)); 
 
-			condStartTime = time.clock(); 
+			condStartTime = time.time(); 
 
 			if(self.exitFlag == False):
 				if(counter < self.iterations-1):
@@ -284,7 +288,7 @@ class PolicyGenerator:
 						#GammaNew[i].condense(max_num_mixands=self.finalMix);
 						GammaNew[i] = GammaNew[i].kmeansCondensationN(k = self.finalMix); 
 
-			condensationTimes.append(time.clock() - condStartTime); 
+			condensationTimes.append(time.time() - condStartTime); 
 
 			if(verbose and self.exitFlag == False):
 				#GammaNew[0].display(); 
@@ -306,6 +310,7 @@ class PolicyGenerator:
 		if(not os.path.isdir('../results/'+self.problemName)):
 			os.mkdir('../results/'+self.problemName); 
 		#f = open('../results/'+self.problemName+'/' + self.problemName + '_Timing' + self.alphaNum +  '.npy','w+'); 
+
 		np.save('../results/'+self.problemName+'/' + self.problemName + '_Timing' + self.alphaNum +  '.npy',iterationTimes);
 		np.save('../results/'+self.problemName+'/' + self.problemName + '_Cond_Timing' + self.alphaNum + '.npy',condensationTimes); 
 
