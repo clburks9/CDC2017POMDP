@@ -42,6 +42,7 @@ Bounds from 0 to 5 on both dimensions
 ****************************************************
 
 
+
 '''
 
 __author__ = "Luke Burks"
@@ -67,6 +68,7 @@ class ModelSpec:
 	def buildTransition(self):
 		self.bounds = [[-10,10],[-10,10]]; 
 		self.delAVar = (np.identity(2)*1).tolist(); 
+		self.delAVar[0][0] = .25; 
 		#self.delA = [[-0.5,0],[0.5,0],[0,-0.5],[0,0.5],[0,0],[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]]; 
 		delta = 1; 
 		self.delA = [[-delta,0],[delta,0],[0,delta],[0,-delta],[0,0]]; 
@@ -183,8 +185,9 @@ class ModelSpec:
 if __name__ == '__main__':
 	a = ModelSpec(); 
 	a.buildTransition(); 
-	a.buildReward(gen = True); 
-	a.buildObs(gen = True); 
+	a.buildReward(gen = False); 
+	a.buildObs(gen = False); 
+
 	
 	
 

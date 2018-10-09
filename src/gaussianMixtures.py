@@ -9,7 +9,7 @@ Classes: GM,Gaussian
 Allows for the creation, use, and compression of mixtures
 of multivariate normals, or Gaussian Mixture Models (GMM).
 
-
+Version 1.4.0: Fixed Kmeans
 
 ***********************************************************
 '''
@@ -19,7 +19,7 @@ __author__ = "Luke Burks"
 __copyright__ = "Copyright 2016, Cohrint"
 __credits__ = ["Luke Burks", "Nisar Ahmed"]
 __license__ = "GPL"
-__version__ = "1.3.4"
+__version__ = "1.4.0"
 __maintainer__ = "Luke Burks"
 __email__ = "luke.burks@colorado.edu"
 __status__ = "Development"
@@ -37,7 +37,7 @@ import math
 import copy
 import time
 from numpy.linalg import inv,det
-
+from copy import deepcopy
 
 
 
@@ -374,7 +374,7 @@ class GM:
 
 
 	#General N-dimensional
-	def kmeansCondensationN(self,k=10,lowInit=None,highInit = None,maxIter = 100):
+	def OLDkmeansCondensationN(self,k=10,lowInit=None,highInit = None,maxIter = 100):
 
 		'''
 		Condenses mixands by first clustering them into k groups, using
@@ -470,6 +470,96 @@ class GM:
 		return ans;
 
 	
+	def kmeansCondensationN(self,k,perCluster=5):
+
+		finalDesired = k*perCluster; 
+		startingSize = self.size; 
+
+
+
+		if(finalDesired >= startingSize):
+			return self; 
+
+		mixDims = len(self[0].mean);
+
+		lowInit = [0]*mixDims; 
+		highInit = [10]*mixDims; 
+
+		means = [1]*k; 
+		for i in range(0,k):
+			tmp = []; 
+			#get a random mean
+			for j in range(0,mixDims):
+				tmp.append(np.random.random()*(highInit[j]-lowInit[j]) + lowInit[j]); 
+			#get a random covariance
+			#MUST BE POSITIVE SEMI DEFINITE and symmetric
+			a = np.random.random(size=(len(self[0].var),len(self[0].var)))*5; 
+			b = np.dot(a,a.transpose()); 
+			c = (b+b.T)/2; 
+			d = c.flatten().tolist(); 
+			for j in range(0,len(d)):
+				tmp.append(d[j]); 	
+			means[i] = tmp; 
+
+
+		converge = False; 
+		count = 0; 
+		newMeans = [1]*k; 
+
+		maxIter = 100;
+
+		while(not converge and count < maxIter):
+			clusters = [GM() for i in range(0,k)]; 
+			for g in self:
+				#put the gaussian in the cluster which minimizes the distance between the distribution mean and the cluster mean
+				if(isinstance(g.mean,list)):
+					clusters[np.argmin([self.distance(g.mean,means[j]) for j in range(0,k)])].addG(g);
+				else:
+					clusters[np.argmin([self.distance([g.mean],means[j]) for j in range(0,k)])].addG(g);
+
+			#find the new mean of each cluster
+			newMeans = [0]*k; 
+
+			for i in range(0,k):
+				newMeans[i] = np.array([0]*mixDims); 
+				for g in clusters[i]:
+					newMeans[i] = np.add(newMeans[i],np.divide(g.mean,clusters[i].size));
+			
+			#check for convergence
+			if(np.array_equal(means,newMeans)):
+				converge = True;
+			count = count+1;
+
+			for i in range(0,k):
+				if not newMeans[i].all() == 0: 
+					means[i] = newMeans[i]
+				else:
+					tmp = []; 
+					#get a random mean
+					for j in range(0,len(self[0].mean)):
+						tmp.append(np.random.random()*(highInit[j]-lowInit[j]) + lowInit[j]); 
+					#get a random covariance
+					#MUST BE POSITIVE SEMI DEFINITE and symmetric
+					a = np.random.random(size=(len(self[0].var),len(self[0].var)))*5; 
+					b = np.dot(a,a.transpose()); 
+					c = (b+b.T)/2; 
+					d = c.flatten().tolist(); 
+					for j in range(0,len(d)):
+						tmp.append(d[j]); 
+					# print('tmp: {}'.format(tmp))	
+					means[i] = tmp;
+		
+
+		newMix = GM(); 
+		for gm in clusters:
+			d = copy.deepcopy(gm); 
+			condensationTarget = max(1,(np.floor(d.size)*finalDesired)/startingSize); 
+			d.condense(condensationTarget); 
+			
+			newMix.addGM(d); 
+		newMix.action = self.action;
+
+		return newMix;
 
 
 	def printClean(self,slices):
@@ -999,7 +1089,7 @@ def TestCondense():
 	test.condense(10);
 	[x1,testCondensePlot] = test.plot(low=low,high = high,num=num,vis = False);
 
-	testKmeans = testKmeans.kmeansCondensationN(k=10,lowInit = low, highInit = high);
+	testKmeans = testKmeans.kmeansCondensationN();
 	[x2,testKmeansPlot] = testKmeans.plot(low=low,high = high,num=num,vis = False);
 
 
@@ -1013,16 +1103,18 @@ def TestCondense():
 def TestCondense2D():
 	test = GM();
 	for i in range(0,100):
-		test.addG(Gaussian([random()*10,random()*10],[[random()*2,0],[0,random()*2]],random()*5));
+		test.addG(Gaussian([random()*5,random()*5],[[random()*5,0],[0,random()*5]],random()*5));
 	testKmeans = copy.deepcopy(test);
 
 	low = [0,0];
-	high = [10,10];
+	high = [5,5];
 	[x1,y1,c1] = test.plot2D(vis=False);
-	test.condense(10);
+	test.condense(25);
 	[x2,y2,c2] = test.plot2D(vis = False);
-	testKmeans = testKmeans.kmeansCondensationN(k = 10, lowInit = low, highInit = high);
+	testKmeans = testKmeans.kmeansCondensationN(k = 5,perCluster=5);
 	[x3,y3,c3] = testKmeans.plot2D(vis=False);
+
+	#testKmeans.display();
 
 	fig,axarr = plt.subplots(3,sharex = True);
 	axarr[0].contourf(x1,y1,c1,cmap = 'viridis');
@@ -1031,7 +1123,7 @@ def TestCondense2D():
 	axarr[1].set_title('Runnalls Method Condensed Mixture');
 	axarr[2].contourf(x3,y3,c3,cmap = 'viridis');
 	axarr[2].set_title('K-means + Runnalls Method Condensed Mixture');
-	plt.suptitle('2D Condensation Test: 100 to 10 mixands');
+	plt.suptitle('2D Condensation Test: 100 to 25 mixands');
 	plt.show();
 
 
@@ -1093,8 +1185,8 @@ if __name__ == "__main__":
 	#Test4DGMProduct();
 	#TestTextFilePrinting();
 	#TestCondense();
-	#TestCondense2D();
+	TestCondense2D();
 	#TestComparison();
 	#TestSample();
 	#TestSample2D();
-	TestDiscretization();
+	#TestDiscretization();

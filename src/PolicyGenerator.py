@@ -68,8 +68,8 @@ class PolicyGenerator:
 		belNum = '0'; 
 		self.alphaNum = '1'; 
 		generate = False; 
-		self.finalMix = 100; 
-		self.maxMix = 10; 
+		self.finalMix = 5; 
+		self.maxMix = 5; 
 		self.iterations = 1000; 
 		self.useSoft = False; 
 
@@ -166,7 +166,7 @@ class PolicyGenerator:
 			self.Gamma[i].action = i; 
 			for g in self.Gamma[i].Gs:
 				g.weight = g.weight/(1-self.discount);
-			self.Gamma[i] = self.Gamma[i].kmeansCondensationN(k=self.finalMix);  
+			self.Gamma[i] = self.Gamma[i].kmeansCondensationN(self.maxMix,self.finalMix);  
 		
 		
 		 
@@ -225,6 +225,7 @@ class PolicyGenerator:
 
 			while(len(BTilde) > 0):
 
+
 				if(self.exitFlag):
 					break; 
 
@@ -282,11 +283,11 @@ class PolicyGenerator:
 					for i in range(0,len(GammaNew)):
 						#if(GammaNew[i].size > maxMix):
 							#GammaNew[i].condense(max_num_mixands=self.maxMix);
-						GammaNew[i] = GammaNew[i].kmeansCondensationN(k = self.maxMix); 
+						GammaNew[i] = GammaNew[i].kmeansCondensationN(self.maxMix,self.finalMix); 
 				elif(counter == self.iterations-1):
 					for i in range(0,len(GammaNew)):
 						#GammaNew[i].condense(max_num_mixands=self.finalMix);
-						GammaNew[i] = GammaNew[i].kmeansCondensationN(k = self.finalMix); 
+						GammaNew[i] = GammaNew[i].kmeansCondensationN(self.maxMix,self.finalMix); 
 
 			condensationTimes.append(time.time() - condStartTime); 
 

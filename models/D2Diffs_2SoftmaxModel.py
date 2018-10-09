@@ -43,7 +43,7 @@ Bounds from 0 to 5 on both dimensions
 '''
 
 __author__ = "Luke Burks"
-__copyright__ = "Copyright 2017, Cohrint"
+__copyright__ = "Copyright 2018, Cohrint"
 __license__ = "GPL"
 __version__ = "1.0"
 __maintainer__ = "Luke Burks"
@@ -64,6 +64,7 @@ class ModelSpec:
 	def buildTransition(self):
 		self.bounds = [[-10,10],[-10,10]]; 
 		self.delAVar = (np.identity(2)*1).tolist(); 
+		self.delAVar[0][0] = .25; 
 		#self.delA = [[-0.5,0],[0.5,0],[0,-0.5],[0,0.5],[0,0],[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]]; 
 		delta = 1; 
 		self.delA = [[-delta,0],[delta,0],[0,delta],[0,-delta],[0,0]]; 
@@ -80,7 +81,7 @@ class ModelSpec:
 			
 			weight = [[0,1],[-1,1],[1,1],[0,2],[0,0]]
 			bias = [1,0,0,0,0]; 
-			steep = 1;
+			steep = 2;
 			weight = (np.array(weight)*steep).tolist(); 
 			bias = (np.array(bias)*steep).tolist(); 
 			self.pz = Softmax(weight,bias); 
