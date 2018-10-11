@@ -10,7 +10,10 @@ bC = np.load("../results/D2Diffs_2Softmax/D2Diffs_2Softmax_Cond_Timing1.npy");
 # print(a*2);
 # print(b*(4/3))
 
+print("a",len(a)); 
+print("b",len(b)); 
 
+print(a); 
 
 for i in range(0,len(a)):
 	if(a[i] > 4*3600):
