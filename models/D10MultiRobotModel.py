@@ -35,6 +35,9 @@ The "Multi-Robot 2D Hallway Problem"
 
 Bounded 0,10 for each dimension
 
+Order of dimensions, x,y for each robot
+Robot 0 is special 
+
 ****************************************************
 '''
 
@@ -44,7 +47,7 @@ class ModelSpec:
 	def __init__(self):
 		self.fileNamePrefix = 'D10MultiRobot'; 
 		self.STM = None
-		self.acts = 26; 
+		self.acts = 21; 
 		self.obs = 84; 
 
 
@@ -53,8 +56,139 @@ class ModelSpec:
 		for i in range(0,10):
 			self.bounds.append([0,10]); 
 
-		#Need a separate 10x10 matrix for each action...
-
+		#Order of actions:
+		#left,right,up,down for each robot, final action is special
+		#for every action, need a 10 element 1 hot vector
 		delta = 1;
-		self.delA = []; 
+		self.delA = [] 
+		for rob in range(0,5):
+			#left
+			tmp = [0]*10; 
+			tmp[rob*2 + 0] = -delta; 
+			self.delA.append(tmp); 
+
+			#right
+			tmp = [0]*10; 
+			tmp[rob*2 + 0] = delta; 
+			self.delA.append(tmp); 
+
+			#up
+			tmp = [0]*10; 
+			tmp[rob*2 + 1] = delta; 
+			self.delA.append(tmp); 
+
+			#down
+			tmp = [0]*10; 
+			tmp[rob*2 + 1] = -delta; 
+			self.delA.append(tmp); 
+
+		#ping
+		tmp = [0]*10
+		self.delA.append(tmp); 
+		
+
+		#Need a separate 10x10 matrix for each action...
+		#There's no reason all robots twitch when one moves
+
+		#go with .5 noise on relevant dimensions
+		self.delAVar = np.zeros(shape=(21,10,10)).tolist(); 
+		for a in range(0,21):
+			for i in range(0,10):
+				self.delAVar[a][i][i] = 0.001; 
+			if(a<20):
+				self.delAVar[a][2*(a//4)][2*(a//4)] = .5; 
+				self.delAVar[a][2*(a//4)+1][2*(a//4)+1] = .5; 
+
 		self.discount = 0.95; 
+
+	#Problem Specific
+	def buildObs(self,gen=True):
+		
+
+		if(gen):
+			
+			#for each 
+			weight = [[0,1],[-1,1],[1,1],[0,2],[0,0]]
+			bias = [1,0,0,0,0]; 
+			steep = 2;
+			weight = (np.array(weight)*steep).tolist(); 
+			bias = (np.array(bias)*steep).tolist(); 
+			self.pz = Softmax(weight,bias); 
+			# print('Plotting Observation Model'); 
+			# [x,y,dom] = self.pz.plot2D(low=[-10,-10],high=[10,10],vis=False); 
+			# plt.contourf(x,y,dom); 
+			# plt.colorbar(); 
+			# plt.show(); 
+						
+
+			np.save("../models/obs/"+ self.fileNamePrefix + "OBS.npy",self.pz);
+		else:
+			self.pz = np.load("../models/obs/"+ self.fileNamePrefix + "OBS.npy").tolist(); 
+
+
+	
+	def buildReward(self,gen = True):
+		if(gen): 
+
+			self.r = [0]*len(self.delA);
+			
+			#square of desired poses with robot 0 in the middle
+			#might need to mess with this for observability
+
+			#Just make every action give the same reward
+			goal = [5,5,2.5,7.5,7.5,7.5,7.5,2.5,2.5,2.5]; 
+
+			for i in range(0,len(self.r)):
+				self.r[i] = GM();  
+				for j in range(1,7):
+					self.r[i].addG(Gaussian(goal,(j*2*np.identity(10)).tolist(),1))
+
+			self.r[0].display(); 
+			
+			np.save("../models/rew/"+ self.fileNamePrefix + "REW.npy",self.r);
+
+		else:
+			self.r = np.load("../models/rew/"+ self.fileNamePrefix + "REW.npy").tolist();
+
+
+
+
+def TestSoftmaxIn10D():
+	#Octohedron Specs
+	numClasses = 9; 
+	boundries = []; 
+	for i in range(1,numClasses):
+		boundries.append([i,0]); 
+	#B = np.matrix([-1,-1,0.5,-1,-1,1,0.5,-1,1,1,0.5,-1,1,-1,0.5,-1,-1,-1,-0.5,-1,-1,1,-0.5,-1,1,1,-0.5,-1,1,-1,-0.5,-1]).T; 
+	B = np.matrix([-1,-1,2,-1,-1,1,2,-1,1,1,2,-1,1,-1,2,-1,-1,-1,-2,-1,-1,1,-2,-1,1,1,-2,-1,1,-1,-2,-1]).T; 
+	
+	numClasses = 5; 
+	boundries = [[1,0],[2,0],[3,0],[4,0]]; 
+	# B = np.matrix(np.concatenate(([-1,-1,2])))
+	# B = np.matrix(np.concatenate(([-1,-1,2,-1],[-1,1,2,-1],[1,1,2,-1],[1,-1,2,-1],[-1,-1,-2,-1],[-1,1,-2,-1],[1,1,-2,-1],[1,-1,-2,-1]))).T; 
+	B = np.matrix(np.concatenate(([-1,-1,0.5,-1],[-1,1,0.5,-1],[1,1,0.5,-1],[1,-1,0.5,-1],[-1,-1,-0.5,-1],[-1,1,-0.5,-1],[1,1,-0.5,-1],[1,-1,-0.5,-1]))).T;
+
+	x = [-1,1,0,-1]; 
+	
+
+
+	pz = Softmax(); 
+	pz.buildGeneralModel(dims=3,numClasses=numClasses,boundries=boundries,B=B,steepness=10); 
+
+	pz.plot3D(); 
+
+
+if __name__ == '__main__':
+	a = ModelSpec(); 
+	# a.buildTransition(); 
+	# a.buildReward(gen = False); 
+	# a.buildObs(gen = False); 
+
+	TestSoftmaxIn10D(); 
+
+
+
+
+
+
+

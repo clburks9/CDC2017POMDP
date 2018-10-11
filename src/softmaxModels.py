@@ -952,12 +952,12 @@ def testPlot3D():
 	dims = 3;
 	steep = 10;
 	
-	'''
+	
 	#Trapezoidal Pyramid Specs
-	numClasses = 7; 
-	boundries = [[1,0],[2,0],[3,0],[4,0],[5,0],[6,0]]; 
-	B = np.matrix([0,0,-1,-1,-1,0,.5,-1,0,1,.5,-1,1,0,.5,-1,0,-1,.5,-1,0,0,1,-1]).T; 
-	'''
+	# numClasses = 7; 
+	# boundries = [[1,0],[2,0],[3,0],[4,0],[5,0],[6,0]]; 
+	# B = np.matrix([0,0,-1,-1,-1,0,.5,-1,0,1,.5,-1,1,0,.5,-1,0,-1,.5,-1,0,0,1,-1]).T; 
+	
 	
 	#Octohedron Specs
 	numClasses = 9; 
@@ -966,6 +966,10 @@ def testPlot3D():
 		boundries.append([i,0]); 
 	B = np.matrix([-1,-1,0.5,-1,-1,1,0.5,-1,1,1,0.5,-1,1,-1,0.5,-1,-1,-1,-0.5,-1,-1,1,-0.5,-1,1,1,-0.5,-1,1,-1,-0.5,-1]).T; 
 	
+	B = np.matrix([-1,-1,0.25,-1,-1,1,0.25,-1,1,1,0.25,-1,1,-1,0.25,-1,-1,-1,-0.25,-1,-1,1,-0.25,-1,1,1,-0.25,-1,1,-1,-0.25,-1]).T; 
+	
+
+
 	pz = Softmax(); 
 	pz.buildGeneralModel(dims=dims,numClasses=numClasses,boundries=boundries,B=B,steepness=steep); 
 
@@ -1093,12 +1097,11 @@ def testLogisticRegression():
 if __name__ == "__main__":
 
 	#test1DSoftmax(); 
-	test2DSoftmax(); 
-	#test4DSoftmax();
+	#test2DSoftmax(); 
 	#testRectangleModel();  
 	#testGeneralModel(); 
 	#testPointsModel(); 
-	#testPlot3D(); 
+	testPlot3D(); 
 	#testOrientRecModel(); 
 	#testTriView(); 
 	#testMakeNear(); 
