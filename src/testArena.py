@@ -464,7 +464,7 @@ if __name__ == '__main__':
 
 
 	print("Simulating Policy with: Think={}, Use={}, soft={}, MCTS={}, greedy={}".format(think,use,soft,MCTS,greedy)); 
-	runMultiSim(think=think,use=use,simCount=100,simSteps=100,alphaNum=4,useSoft=soft,MCTS = MCTS,greedy=greedy);  
+	runMultiSim(think=think,use=use,simCount=20,simSteps=100,alphaNum=4,useSoft=soft,MCTS = MCTS,greedy=greedy);  
 
 
 	# a = np.load("../policies/D4DiffsAlphas1.npy");
