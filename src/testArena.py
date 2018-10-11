@@ -37,7 +37,6 @@ from scipy.stats import multivariate_normal as mvn
 import os
 import sys, getopt
 import signal
-from testMCTS import OnlineSolver
 
 def makeSeedBeliefs():
 
@@ -212,8 +211,7 @@ def beliefUpdateSoftmaxSTM(b,a,o,allMod):
 def sim(policy,initBelief,initPose,allModBels,allModActs,numSteps = 20,useSoft=False,MCTS=False,greedy=False):
 
 	b = initBelief; 
-	onSolve = OnlineSolver(allModBels); 
-		
+	
 	#Setup data gathering 
 	x = initPose;
 	allX = []; 
@@ -238,12 +236,6 @@ def sim(policy,initBelief,initPose,allModBels,allModActs,numSteps = 20,useSoft=F
 		#Get Action
 		if(greedy):
 			act = getGreedyAction(b);
-		elif(MCTS):
-			act = onSolve.MCTS(b,d=2)[0];
-			if(act == 2):
-				act = 3; 
-			if(act == 3):
-				act = 2; 
 		else:
 			act = getAction(b,policy);
 		
