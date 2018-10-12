@@ -404,12 +404,14 @@ def runMultiSim(think,step=-1,simCount=10,simSteps = 100,alphaNum = 2,useSoft=Fa
 
 	if(not os.path.isdir('../results/'+modelName)):
 		os.mkdir('../results/'+modelName);
-	if(think=='NCP'): 
-		if(use=='NCP'):
-			if(greedy):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_Greedy' + str(alphaNum)+  '.npy'; 
-			else:
-				f = '../results/'+modelName+'/' + modelName + '_Data' + str(alphaNum)+ '.npy';
+
+	if(greedy):
+		f = '../results/'+modelName+'/' + modelName + '_Data' + '_Greedy' + think +  '.npy'; 
+	else:
+		if(step == -1):
+			f = '../results/'+modelName+'/' + modelName + '_Data' + '.npy';
+		else:
+			f = '../results/'+modelName+'/' + modelName + '_Data_Step' + str(step)+ '.npy';
 
 	np.save(f,dataSave); 
 
@@ -432,17 +434,19 @@ def getIterationTimes():
 
 
 	#Find the half hourly policies
-	GMHours = {}; 
-	VBHours = {}; 
+	GMHours = []; 
+	VBHours = []; 
 	for i in range(1,17):
 		for j in range(0,len(GMtimes)):
 			if(GMtimes[j] > i*3600/2):
-				GMHours[str(i/2)] = j-1; 
+				GMHours.append(j-1); 
 				break; 
 		for j in range(0,len(VBtimes)):
 			if(VBtimes[j] > i*3600/2):
-				VBHours[str(i/2)] = j-1; 
+				VBHours.append(j-1); 
 				break; 
+
+	return GMHours,VBHours; 
 
 
 if __name__ == '__main__':
@@ -476,10 +480,19 @@ if __name__ == '__main__':
 			greedy = False; 
 
 
-	print("Simulating Policy with: soft={}, greedy={}".format(soft,greedy)); 
-	if(think != -1):
-		print("Using Policy from iteration: {}".format(use)); 
-	runMultiSim(think=think,step=use,simCount=20,simSteps=100,alphaNum=4,useSoft=soft,MCTS = MCTS,greedy=greedy);  
+	# print("Simulating Policy with: soft={}, greedy={}".format(soft,greedy)); 
+	# if(think != -1):
+	# 	print("Using Policy from iteration: {}".format(use)); 
+
+	GMHours,VBHours = getIterationTimes(); 
+
+	useHours = GMHours; 
+	if(soft):
+		useHours = VBHours; 
+
+	for step in useHours:
+		print("Simulating Policy at Step {} with: soft={}, greedy={}".format(step,soft,greedy)); 
+		runMultiSim(think=think,step=step,simCount=100,simSteps=100,alphaNum=4,useSoft=soft,MCTS = MCTS,greedy=greedy);  
 
 
 	# a = np.load("../policies/D4DiffsAlphas1.npy");

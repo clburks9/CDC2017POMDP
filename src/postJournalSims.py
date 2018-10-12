@@ -304,7 +304,7 @@ def sim(policy,initBelief,initPose,allModBels,allModActs,numSteps = 20,useSoft=F
 	return [allB,allX,allXInd,allAct,allReward]; 
 
 
-def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,MCTS = False,greedy = False):
+def runMultiSim(think,simCount=10,simSteps = 100,alphaNum = 2,step=-1,useSoft=False,MCTS = False,greedy = False):
 	#run simulations
 	allSimRewards = [];
 	allSimAct = []; 
@@ -314,16 +314,29 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 
 	sys.path.append('../models/') 
 
+
 	if(useSoft):
-		policy = np.load("../policies/D2DiffsSoftmaxAlphas"+think+".npy",encoding='latin1');
-		modelModule = __import__('D2DiffsSoftmaxModel', globals(), locals(), ['ModelSpec'],0); 
-		modelClass = modelModule.ModelSpec;
-		modelName = 'D2DiffsSoftmax'
+		if(step==-1):
+			policy = np.load("../policies/D2DiffsSoftmaxAlphas"+think+".npy",encoding='latin1');
+			modelModule = __import__('D2DiffsSoftmaxModel', globals(), locals(), ['ModelSpec'],0); 
+			modelClass = modelModule.ModelSpec;
+			modelName = 'D2DiffsSoftmax'
+		else:
+			policy = np.load("../policies/D2DiffsSoftmax/D2DiffsSoftmaxAlphas"+think+"Step"+str(step)+".npy",encoding='latin1');
+			modelModule = __import__('D2DiffsSoftmaxModel', globals(), locals(), ['ModelSpec'],0); 
+			modelClass = modelModule.ModelSpec;
+			modelName = 'D2DiffsSoftmax'
 	else:
-		policy = np.load("../policies/D2DiffsAlphas"+think+".npy",encoding='latin1');
-		modelModule = __import__('D2DiffsModel', globals(), locals(), ['ModelSpec'],0); 
-		modelClass = modelModule.ModelSpec;
-		modelName = 'D2Diffs'
+		if(step==-1):
+			policy = np.load("../policies/D2DiffsAlphas"+think+".npy",encoding='latin1');
+			modelModule = __import__('D2DiffsModel', globals(), locals(), ['ModelSpec'],0); 
+			modelClass = modelModule.ModelSpec;
+			modelName = 'D2Diffs'
+		else:
+			policy = np.load("../policies/D2Diffs/D2DiffsAlphas"+think+"Step"+str(step)+".npy",encoding='latin1');
+			modelModule = __import__('D2DiffsModel', globals(), locals(), ['ModelSpec'],0); 
+			modelClass = modelModule.ModelSpec;
+			modelName = 'D2Diffs'
 	
 	#Grab Modeling Code
 	allModBels = modelClass(); 
@@ -334,6 +347,10 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 	allModActs.buildTransition();
 	allModActs.buildObs(gen=False); 
 	allModActs.buildReward(gen=False);
+	allModActs.STM = np.matrix([[1,0],[0,1]])
+	allModBels.STM = np.matrix([[1,0],[0,1]])
+
+
 
 
 	for count in range(0,simCount):
@@ -352,6 +369,7 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 
 		print("Starting simulation: " + str(count+1) + " of " + str(simCount));
 		
+
 		[allB,allX,allXInd,allAct,allReward] = sim(policy,b,x,allModBels,allModActs,numSteps=simSteps,useSoft=useSoft,MCTS = MCTS,greedy=greedy); 
 		
 		
@@ -390,7 +408,7 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 
 def signal_handler(signal, frame):
 	print(""); 
-	s = raw_input("Confirm STOP? (Y/N)"); 
+	s = input("Confirm STOP? (Y/N)"); 
 	if(s.upper() == 'Y'):
 		sys.exit(-1); 
 
@@ -401,14 +419,17 @@ if __name__ == '__main__':
 
 	
 	think = 'NCP'; 
-	use = 'NCP'
+	use = -1
 	soft = False; 
 	greedy = False;
 	MCTS = False 
 
+	#think is NCP
+	#Use is Step
+
 	if(len(sys.argv)>1):
 		think = sys.argv[1]; 
-		use = sys.argv[2]; 
+		use = int(sys.argv[2]); 
 		if(sys.argv[3] == 'True'):
 			soft = True; 
 		else:
@@ -423,8 +444,10 @@ if __name__ == '__main__':
 			greedy = False; 
 
 
-	print("Simulating Policy with: Think={}, Use={}, soft={}, MCTS={}, greedy={}".format(think,use,soft,MCTS,greedy)); 
-	runMultiSim(think=think,use=use,simCount=20,simSteps=100,alphaNum=4,useSoft=soft,MCTS = MCTS,greedy=greedy);  
+	print("Simulating Policy with: soft={}, greedy={}".format(soft,greedy)); 
+	if(think != '-1'):
+		print("Using Policy from iteration: {}".format(use)); 
+	runMultiSim(think=think,step=use,simCount=20,simSteps=100,alphaNum=4,useSoft=soft,MCTS = MCTS,greedy=greedy);  
 
 
 	# a = np.load("../policies/D4DiffsAlphas1.npy");
