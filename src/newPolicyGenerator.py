@@ -162,7 +162,7 @@ class PolicyGenerator:
 			self.Gamma[i].action = i; 
 			for g in self.Gamma[i].Gs:
 				g.weight = g.weight/(1-self.discount);
-			self.Gamma[i] = self.Gamma[i].kmeansCondensationN(self.maxMix,self.finalMix);  
+			self.Gamma[i] = self.Gamma[i].kmeansCondensationN(self.maxMix);  
 		
 		
 		 
@@ -279,11 +279,11 @@ class PolicyGenerator:
 					for i in range(0,len(GammaNew)):
 						#if(GammaNew[i].size > maxMix):
 							#GammaNew[i].condense(max_num_mixands=self.maxMix);
-						GammaNew[i] = GammaNew[i].kmeansCondensationN(self.maxMix,self.finalMix); 
+						GammaNew[i] = GammaNew[i].kmeansCondensationN(self.maxMix); 
 				elif(counter == self.iterations-1):
 					for i in range(0,len(GammaNew)):
 						#GammaNew[i].condense(max_num_mixands=self.finalMix);
-						GammaNew[i] = GammaNew[i].kmeansCondensationN(self.maxMix,self.finalMix); 
+						GammaNew[i] = GammaNew[i].kmeansCondensationN(self.finalMix); 
 
 			condensationTimes.append(time.time() - condStartTime); 
 
