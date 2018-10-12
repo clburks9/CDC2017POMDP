@@ -315,22 +315,22 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 	sys.path.append('../models/') 
 
 	if(useSoft):
-		policy = np.load("../policies/D4DiffsSoftmaxAlphas"+think+".npy",encoding='latin1');
-		modelModule = __import__('D4DiffsSoftmaxModel', globals(), locals(), ['ModelSpec'],0); 
+		policy = np.load("../policies/D2DiffsSoftmaxAlphas"+think+".npy",encoding='latin1');
+		modelModule = __import__('D2DiffsSoftmaxModel', globals(), locals(), ['ModelSpec'],0); 
 		modelClass = modelModule.ModelSpec;
-		modelName = 'D4DiffsSoftmax'
+		modelName = 'D2DiffsSoftmax'
 	else:
-		policy = np.load("../policies/D4DiffsAlphas"+think+".npy",encoding='latin1');
-		modelModule = __import__('D4DiffsModel', globals(), locals(), ['ModelSpec'],0); 
+		policy = np.load("../policies/D2DiffsAlphas"+think+".npy",encoding='latin1');
+		modelModule = __import__('D2DiffsModel', globals(), locals(), ['ModelSpec'],0); 
 		modelClass = modelModule.ModelSpec;
-		modelName = 'D4Diffs'
+		modelName = 'D2Diffs'
 	
 	#Grab Modeling Code
-	allModBels = modelClass(mode=think); 
+	allModBels = modelClass(); 
 	allModBels.buildObs(gen=False);
 	allModBels.buildTransition();
 	allModBels.buildReward(gen=False); 
-	allModActs = modelClass(mode=use); 
+	allModActs = modelClass(); 
 	allModActs.buildTransition();
 	allModActs.buildObs(gen=False); 
 	allModActs.buildReward(gen=False);
@@ -342,32 +342,20 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 		b=GM(); 
 		for i in range(-2,3):
 			for j in range(-2,3):
-				if(think == 'NCV'):
-					for k in range(-1,2):
-						for l in range(-1,2):
-							var = np.identity(4)*4; 
-							var = var.tolist(); 
-							var[2][2] = 1; 
-							var[3][3] = 1;
-							b.addG(Gaussian([i*3,j*3,k/4,l/4],np.identity(4)*4,1)); 
-				else:
-					var = np.identity(4)*4; 
-					var = var.tolist(); 
-					var[2][2] = 0.25; 
-					var[3][3] = 0.25; 
-					b.addG(Gaussian([i*3,j*3,0,0],var,1))
+				var = np.identity(2)*4; 
+				var = var.tolist(); 
+				b.addG(Gaussian([i*3,j*3],var,1))
 		b.normalizeWeights();
 
-		if(use == 'NCV'):
-			x = [np.random.random()*20-10,np.random.random()*20-10,np.random.random()/2 -.25, np.random.random()/2-.25];
-		else:
-			x = [np.random.random()*20-10,np.random.random()*20-10,0,0];
+
+		x = [np.random.random()*20-10,np.random.random()*20-10];
 
 		print("Starting simulation: " + str(count+1) + " of " + str(simCount));
 		
 		[allB,allX,allXInd,allAct,allReward] = sim(policy,b,x,allModBels,allModActs,numSteps=simSteps,useSoft=useSoft,MCTS = MCTS,greedy=greedy); 
 		
-			
+		
+
 		
 		allSimRewards.append(allReward);
 		allSimB.append([allB]); 
@@ -375,6 +363,12 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 		allSimX.append([allX]); 
 		allSimXInd.append([allXInd]); 
 		print("Simulation complete. Reward: " + str(allReward[-1])); 
+
+		suma = 0; 
+		for i in range(0,len(allSimRewards)):
+			suma += allSimRewards[i][-1]/len(allSimRewards); 
+		print("Average Reward So Far: {}".format(suma)); 
+
 	
 	suma = 0; 
 	for i in range(0,len(allSimRewards)):
@@ -386,37 +380,11 @@ def runMultiSim(think,use,simCount=10,simSteps = 100,alphaNum = 2,useSoft=False,
 
 	if(not os.path.isdir('../results/'+modelName)):
 		os.mkdir('../results/'+modelName);
-	if(think=='NCP'): 
-		if(use=='NCP'):
-			if(greedy):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP_Greedy' + str(alphaNum)+  '.npy'; 
-			elif(MCTS):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP_MCTS' + str(alphaNum)+ '.npy'; 
-			else:
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCP' + str(alphaNum)+ '.npy';
+
+			
+	f = '../results/'+modelName+'/' + modelName + '_Data' + str(alphaNum)+ '.npy';
 		
-		else:
-			if(greedy):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV_Greedy' + str(alphaNum)+ '.npy';
-			elif(MCTS):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV_MCTS' + str(alphaNum)+'.npy'; 
-			else:
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCP_UseNCV' +  str(alphaNum)+'.npy'; 
-	else:
-		if(use=='NCP'):
-			if(greedy):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP_Greedy' + str(alphaNum)+ '.npy'; 
-			elif(MCTS):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP_MCTS' + str(alphaNum)+ '.npy'; 
-			else:
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCP' + str(alphaNum)+ '.npy'; 
-		else:
-			if(greedy):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV_Greedy' + str(alphaNum)+ '.npy';
-			elif(MCTS):
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV_MCTS' + str(alphaNum)+ '.npy';
-			else:
-				f = '../results/'+modelName+'/' + modelName + '_Data' + '_ThinkNCV_UseNCV' + str(alphaNum)+ '.npy';
+
 	np.save(f,dataSave); 
 
 

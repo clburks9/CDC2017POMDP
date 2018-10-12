@@ -685,7 +685,7 @@ class Softmax:
 		else:
 			return x,y,dom;
 
-	def plot3D(self,low=[-5,-5,-5],high=[5,5,5]):
+	def plot3D(self,low=[-5,-5,-5],high=[5,5,5],pause=False):
 		fig = plt.figure(); 
 		ax = fig.add_subplot(111,projection='3d'); 
 		ax.set_xlabel('X Axis'); 
@@ -697,7 +697,7 @@ class Softmax:
 		ax.set_title("3D Scatter of Dominant Softmax Classes")
 
 		
-		for clas in range(1,self.size):
+		for clas in range(0,self.size):
 			shapeEdgesX = []; 
 			shapeEdgesY = [];
 			shapeEdgesZ = []; 
@@ -711,10 +711,15 @@ class Softmax:
 							shapeEdgesX.append((i-10)/2); 
 							shapeEdgesY.append((j-10)/2); 
 							shapeEdgesZ.append((k-10)/2);   
+			if(clas==0):
+				ax.scatter(shapeEdgesX,shapeEdgesY,shapeEdgesZ,s=20,c='k'); 
+			else:
+				ax.scatter(shapeEdgesX,shapeEdgesY,shapeEdgesZ); 
 
-			ax.scatter(shapeEdgesX,shapeEdgesY,shapeEdgesZ); 
-
-		plt.show();
+		if(pause):
+			plt.pause(0.1); 
+		else:
+			plt.show();
 
 
 
@@ -959,13 +964,20 @@ def testPlot3D():
 	B = np.matrix([0,0,-1,-1,-1,0,.5,-1,0,1,.5,-1,1,0,.5,-1,0,-1,.5,-1,0,0,1,-1]).T; 
 	'''
 	
-	#Octohedron Specs
-	numClasses = 9; 
-	boundries = []; 
-	for i in range(1,numClasses):
-		boundries.append([i,0]); 
-	B = np.matrix([-1,-1,0.5,-1,-1,1,0.5,-1,1,1,0.5,-1,1,-1,0.5,-1,-1,-1,-0.5,-1,-1,1,-0.5,-1,1,1,-0.5,-1,1,-1,-0.5,-1]).T; 
+	# #Octohedron Specs
+	# numClasses = 9; 
+	# boundries = []; 
+	# for i in range(1,numClasses):
+	# 	boundries.append([i,0]); 
+	# B = np.matrix([-1,-1,0.5,-1,-1,1,0.5,-1,1,1,0.5,-1,1,-1,0.5,-1,-1,-1,-0.5,-1,-1,1,-0.5,-1,1,1,-0.5,-1,1,-1,-0.5,-1]).T; 
 	
+	#Cube Specs
+	numClasses = 7; 
+	boundries = [[1,0],[2,0],[3,0],[4,0],[5,0],[6,0]]; 
+	B = np.matrix(np.concatenate(([0,-1,0,-1],[0,0,1,-1],[1,0,0,-1],[0,0,-1,-1],[-1,0,0,-1],[0,1,0,-1]))).T;
+
+
+
 	pz = Softmax(); 
 	pz.buildGeneralModel(dims=dims,numClasses=numClasses,boundries=boundries,B=B,steepness=steep); 
 
@@ -1093,12 +1105,12 @@ def testLogisticRegression():
 if __name__ == "__main__":
 
 	#test1DSoftmax(); 
-	test2DSoftmax(); 
+	#test2DSoftmax(); 
 	#test4DSoftmax();
 	#testRectangleModel();  
 	#testGeneralModel(); 
 	#testPointsModel(); 
-	#testPlot3D(); 
+	testPlot3D(); 
 	#testOrientRecModel(); 
 	#testTriView(); 
 	#testMakeNear(); 
