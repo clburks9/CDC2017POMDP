@@ -712,7 +712,7 @@ class Softmax:
 							shapeEdgesY.append((j-10)/2); 
 							shapeEdgesZ.append((k-10)/2);   
 			if(clas==0):
-				ax.scatter(shapeEdgesX,shapeEdgesY,shapeEdgesZ,s=20,c='k'); 
+				ax.scatter(shapeEdgesX,shapeEdgesY,shapeEdgesZ,s=60,c='k'); 
 			else:
 				ax.scatter(shapeEdgesX,shapeEdgesY,shapeEdgesZ); 
 
@@ -957,12 +957,12 @@ def testPlot3D():
 	dims = 3;
 	steep = 10;
 	
-	'''
+	
 	#Trapezoidal Pyramid Specs
 	numClasses = 7; 
 	boundries = [[1,0],[2,0],[3,0],[4,0],[5,0],[6,0]]; 
 	B = np.matrix([0,0,-1,-1,-1,0,.5,-1,0,1,.5,-1,1,0,.5,-1,0,-1,.5,-1,0,0,1,-1]).T; 
-	'''
+	
 	
 	# #Octohedron Specs
 	# numClasses = 9; 
@@ -971,11 +971,12 @@ def testPlot3D():
 	# 	boundries.append([i,0]); 
 	# B = np.matrix([-1,-1,0.5,-1,-1,1,0.5,-1,1,1,0.5,-1,1,-1,0.5,-1,-1,-1,-0.5,-1,-1,1,-0.5,-1,1,1,-0.5,-1,1,-1,-0.5,-1]).T; 
 	
+	'''
 	#Cube Specs
 	numClasses = 7; 
 	boundries = [[1,0],[2,0],[3,0],[4,0],[5,0],[6,0]]; 
 	B = np.matrix(np.concatenate(([0,-1,0,-1],[0,0,1,-1],[1,0,0,-1],[0,0,-1,-1],[-1,0,0,-1],[0,1,0,-1]))).T;
-
+	'''
 
 
 	pz = Softmax(); 

@@ -176,7 +176,19 @@ def TestSoftmaxIn10D():
 	for i in range(1,numClasses):
 		boundries.append([i,0]); 
 	#B = np.matrix(np.concatenate(([1,0,0,0,-1],[-1,0,0,0,-1],[0,1,0,0,-1],[0,-1,0,0,-1],[0,0,1,0,-1],[0,0,-1,0,-1],[0,0,0,1,-1],[0,0,0,-1,-1],))).T;
-	B = np.matrix(np.concatenate(([1,0,0,0,-1],[-1,0,0,0,-1],[0,1,0,0,-1],[0,-1,0,0,-1],[0,0,1,0,-1],[0,0,-1,0,-1],[0,0,0,1,-1],[0,0,0,-1,-1]))).T;
+	#pose = [1,-1,-1,0]; 
+	B = np.matrix(np.concatenate(([1,0,0,0,-2],[-1,0,0,0,0],[0,1,0,0,0],[0,-1,0,0,-2],[0,0,1,0,0],[0,0,-1,0,-2],[0,0,0,1,-1],[0,0,0,-1,-1]))).T;
+
+
+	#Parrallel-Piped, 4D, Tilted along X and Y
+	#In Progress
+	numClasses = 9; 
+	boundries = []; 
+	for i in range(1,numClasses):
+		boundries.append([i,0]); 
+	B = np.matrix(np.concatenate(([-1,1,0,0,-1],[1,-1,0,0,-1],[-1,1,0,0,-1],[1,-1,0,0,-1],[0,0,1,0,-1],[0,0,-1,0,-1],[0,0,0,1,-1],[0,0,0,-1,-1]))).T;
+
+
 
 	#Notes:
 	#There's a push and pull between constants on the same dimension
