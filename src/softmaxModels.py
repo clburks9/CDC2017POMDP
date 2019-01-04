@@ -448,7 +448,7 @@ class Softmax:
 		converged = False
 		EM_step = 0
 
-		while not converged and EM_step < 10000:
+		while not converged and EM_step < 1000000000:
 			################################################################
 			# STEP 1 - EXPECTATION
 			################################################################
@@ -546,7 +546,7 @@ class Softmax:
 			# <>CHECK - WHY DO WE ADD +1 HERE??
 			log_c_hat = y_cs[j] - alpha + sum1 - KLD + 1
 
-			if np.abs(log_c_hat - prev_log_c_hat) < 0.001:
+			if np.abs(log_c_hat - prev_log_c_hat) < 0.000001:
 			    break
 
 			prev_log_c_hat = log_c_hat
@@ -574,10 +574,10 @@ class Softmax:
 		zeta_c = self.zeta_c; 
 
 		for g in prior.Gs:
-			prevLogCHat = -1000; 
+			prevLogCHat = -100000; 
 
 			count = 0; 
-			while(count < 100000):
+			while(count < 10000000):
 				
 				count = count+1; 
 				if(not badStuff):

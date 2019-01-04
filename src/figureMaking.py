@@ -497,11 +497,14 @@ def remakeCondensationPlot():
 
 
 if __name__ == '__main__':
+
+	rc('text', usetex=True)
+
 	#remakeAhmedTROSoftamx(); 
 	#remakeOneDimBarGraph(); 
-	remakeTwoDimBarGraph(); 
+	#remakeTwoDimBarGraph(); 
 	#remakeGMToSoftmaxComp();
-	#remake2DFusionPlot();
+	remake2DFusionPlot();
 	#remakeCondensationPlot(); 
 
 

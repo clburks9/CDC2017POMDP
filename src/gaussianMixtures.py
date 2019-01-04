@@ -136,6 +136,7 @@ class GM:
 
 	def clean(self):
 
+
 		for g in self.Gs:
 			if(not isinstance(g.mean,list) and not isinstance(g.mean,int) and not isinstance(g.mean,float)):
 				g.mean = g.mean.tolist();
@@ -143,7 +144,7 @@ class GM:
 			if(not isinstance(g.var,list) and not isinstance(g.var,int) and not isinstance(g.var,float)):
 				g.var = g.var.tolist();
 
-			if(not isinstance(g.mean,int) and not isinstance(g.mean,float)):
+			if(not isinstance(g.mean,int) and not isinstance(g.mean,float)):  
 				while(len(g.mean) != len(g.var)):
 					g.mean = g.mean[0];
 
@@ -174,6 +175,7 @@ class GM:
 		Returns the mixand mean with the highest contribution from all
 		mixands.
 		'''
+		#print(self.size); 
 		cands = [0]*self.size;
 		for i in range(0,self.size):
 			for j in range(0,self.size):

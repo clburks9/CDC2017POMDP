@@ -253,47 +253,48 @@ if __name__ == '__main__':
 		print(key,exampleData[key]['Rewards'][-1]); 
 
 
-	# averageFinalReward = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
-	# averageAllReward = {'NCP/NCP':[0]*101,'NCP/NCV':[0]*101,'NCV/NCP':[0]*101,'NCV/NCV':[0]*101}; 
+	averageFinalReward = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
+	averageAllReward = {'NCP/NCP':[0]*101,'NCP/NCV':[0]*101,'NCV/NCP':[0]*101,'NCV/NCV':[0]*101}; 
 
-	# print(data['NCP/NCP']['Rewards'][0])
+	print(data['NCP/NCP']['Rewards'][0])
 
-	# for key in data.keys():
-	# 	for i in range(0,len(data[key]['Rewards'])): 
-	# 		#print(len(data[key]['Rewards'])); 
-	# 		averageFinalReward[key] += data[key]['Rewards'][i][-1]/len(data[key]['Rewards']); 
+	for key in data.keys():
+		for i in range(0,len(data[key]['Rewards'])): 
+			#print(len(data[key]['Rewards'])); 
+			averageFinalReward[key] += data[key]['Rewards'][i][-1]/len(data[key]['Rewards']); 
 
-	# 	for i in range(0,len(data[key]['Rewards'])):
-	# 		for j in range(0,len(data[key]['Rewards'][i])):
-	# 			#print(len(averageAllReward[key]),len(data[key]['Rewards'][i]),len(data[key]['Rewards'])); 
-	# 			averageAllReward[key][j] += data[key]['Rewards'][i][j]/len(data[key]['Rewards']); 
-
-
-	# variance = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
-	# sigma = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
-	# allSigma = {'NCP/NCP':[0]*101,'NCP/NCV':[0]*101,'NCV/NCP':[0]*101,'NCV/NCV':[0]*101}; 
+		for i in range(0,len(data[key]['Rewards'])):
+			for j in range(0,len(data[key]['Rewards'][i])):
+				#print(len(averageAllReward[key]),len(data[key]['Rewards'][i]),len(data[key]['Rewards'])); 
+				averageAllReward[key][j] += data[key]['Rewards'][i][j]/len(data[key]['Rewards']); 
 
 
-	# for key in data.keys():
-	# 	suma = 0; 
-	# 	for i in range(0,len(data[key]['Rewards'])):
-	# 		suma+=(data[key]['Rewards'][i][-1] - averageFinalReward[key])**2; 
-	# 	variance[key] = suma/len(data[key]['Rewards']); 
-	# 	sigma[key] = np.sqrt(variance[key]); 
-
-	# 	for i in range(0,len(data[key]['Rewards'][0])):
-	# 		suma = 0; 
-	# 		for j in range(0,len(data[key]['Rewards'])):
-	# 			suma += (data[key]['Rewards'][j][i] - averageAllReward[key][i])**2; 
-	# 		allSigma[key][i] = np.sqrt(suma/len(data[key]['Rewards'])); 
+	variance = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
+	sigma = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
+	allSigma = {'NCP/NCP':[0]*101,'NCP/NCV':[0]*101,'NCV/NCP':[0]*101,'NCV/NCV':[0]*101}; 
 
 
+	for key in data.keys():
+		suma = 0; 
+		for i in range(0,len(data[key]['Rewards'])):
+			suma+=(data[key]['Rewards'][i][-1] - averageFinalReward[key])**2; 
+		variance[key] = suma/len(data[key]['Rewards']); 
+		sigma[key] = np.sqrt(variance[key]); 
+
+		for i in range(0,len(data[key]['Rewards'][0])):
+			suma = 0; 
+			for j in range(0,len(data[key]['Rewards'])):
+				suma += (data[key]['Rewards'][j][i] - averageAllReward[key][i])**2; 
+			allSigma[key][i] = np.sqrt(suma/len(data[key]['Rewards'])); 
+
+
+	print(sigma); 
 
 
 	#heatGrid(data,averageFinalReward);
 	#fillAndBoxPlots(data,averageFinalReward,averageAllReward,variance,sigma,allSigma);
 
-	showBoundedRobberEstimate(exampleData); 
+	#showBoundedRobberEstimate(exampleData); 
 
 
 
