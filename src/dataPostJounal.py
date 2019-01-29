@@ -12,6 +12,7 @@ from copy import deepcopy
 import time
 from testFunctions import *
 from testArenaSep import *
+from matplotlib.patches import Circle
 
 def getIterationTimes():
 	GMtimes = np.load("../results/TRO_Results_Final/D4Diffs/D4Diffs_TimingNCP.npy"); 
@@ -532,11 +533,12 @@ def makeLowQPlots(save = True):
 	axarr[2].axvline(np.mean(GMLowQ),c='k'); 
 	axarr[3].axvline(np.mean(GreedyLowQ),c='k');
 
-	fig.suptitle("LowQ 1000-Sim Histograms")
+	fig.suptitle("Histogram of Results with Low Process Noise")
+
 	if(save):
-		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Presentations/11_5_18 Nisar Meeting/LowQHists.png'); 
+		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Journals/TRO 2018/postRev/LowQHists.pdf');
 	else:
-		plt.show(); 
+		plt.show();
 
 
 
@@ -754,6 +756,7 @@ def MMSBasics(save=False):
 		print("For Run: {}".format(key))
 		print("Percent Caught: {:0.2f}".format(len(catches[key])*100/(totalNum))); 
 		print("Mean Catch Given Caught: {:0.2f}".format(np.mean(catches[key]))); 
+		print("SD Given Caught: {:0.2f}".format(np.std(catches[key]))); 
 		print("")
 
 		# plt.hist(catches[key],bins=50); 
@@ -777,6 +780,7 @@ def MMSBasics(save=False):
 
 
 
+
 	fig,axarr =plt.subplots(2,1); 
 	ct=[["{:0.2f}".format(len(catches['VB'])*100/(totalNum)),"{:0.2f}".format(len(catches['GM'])*100/(totalNum)),"{:0.2f}".format(len(catches['Greedy'])*100/(totalNum))],["{:0.2f}".format(np.mean(catches['VB'])),"{:0.2f}".format(np.mean(catches['GM'])),"{:0.2f}".format(np.mean(catches['Greedy']))]]
 	axarr[0].table(cellText=ct,colLabels=('VB','GM','Greedy'),rowLabels=('%Caught','Mean Step'),loc='center'); 
@@ -785,11 +789,11 @@ def MMSBasics(save=False):
 	axarr[1].set_title("Binomial Test P-Values")
 
 	axarr[0].axis('tight'); 
-	axarr[0].axis('off'); 
-	axarr[0].grid('off'); 
+	axarr[0].axis(False); 
+	axarr[0].grid(False); 
 	axarr[1].axis('tight');  
-	axarr[1].axis('off'); 
-	axarr[1].grid('off'); 
+	axarr[1].axis(False); 
+	axarr[1].grid(False); 
 	if(save):
 		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Presentations/11_5_18 Nisar Meeting/MMSBasic.png'); 
 	else:
@@ -1173,9 +1177,9 @@ def makeMMSObsModel(save=False):
 	plt.axes().set_aspect('equal');
 
 	if(save):
-		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Presentations/11_5_18 Nisar Meeting/ObsModelMMS.png');
+		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Journals/TRO 2018/postRev/MMSObsModel.pdf');
 	else:
-		plt.show(); 
+		plt.show();
 
 
 def combineMMSData():
@@ -1346,12 +1350,13 @@ def POMCPExploration(save=False):
 
 	plt.ylabel('Average Accumlated Reward'); 
 	plt.xlabel('POMCP Decision Time'); 
-	plt.legend(["POMCP","VB-POMDP","GM-POMDP"])
+	plt.legend(["POMCP","VB-POMDP","GM-POMDP","Measurement"])
+
 
 	if(save):
-		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Presentations/11_5_18 Nisar Meeting/POMCPApproach.png');
+		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Journals/TRO 2018/postRev/POMCPTime.pdf');
 	else:
-		plt.show(); 
+		plt.show();
 
 	data = np.load('../results/accumlatedResults.npy').item(); 
 
@@ -1361,6 +1366,11 @@ def POMCPExploration(save=False):
 	Greedy = data['greedFinalRewards']; 
 	Perfect = data['perfectFinalRewards']; 
 	
+	print("VB, Mean: {}, SD: {}".format(np.mean(VB),np.std(VB))); 
+	print("GM, Mean: {}, SD: {}".format(np.mean(GM),np.std(GM))); 
+	print("Greedy, Mean: {}, SD: {}".format(np.mean(Greedy),np.std(Greedy))); 
+	print("Perfect, Mean: {}, SD: {}".format(np.mean(Perfect),np.std(Perfect))); 
+	print("POMCP3s, Mean: {}, SD: {}".format(np.mean(threeTotals),np.std(threeTotals))); 
 
 	bins = [i*5+30 for i in range(0,64)]
 	
@@ -1373,7 +1383,7 @@ def POMCPExploration(save=False):
 	x = np.linspace(xmin,xmax,100); 
 	p = norm.pdf(x,mu,std); 
 	axarr[1].plot(x,p,'k',linewidth=2); 
-	axarr[1].set_xlim([0,250])
+	axarr[1].set_xlim([0,200])
 	axarr[1].set_ylim([0,0.02]); 
 
 	axarr[0].hist(Perfect,density=True,bins=bins,color='k'); 
@@ -1383,7 +1393,7 @@ def POMCPExploration(save=False):
 	x = np.linspace(xmin,xmax,100); 
 	p = norm.pdf(x,mu,std); 
 	axarr[0].plot(x,p,'r',linewidth=2); 
-	axarr[0].set_xlim([0,250])
+	axarr[0].set_xlim([0,200])
 	axarr[0].set_ylim([0,0.02]); 
 
 	axarr[3].hist(GM,density=True,bins=bins,color='b'); 
@@ -1393,7 +1403,7 @@ def POMCPExploration(save=False):
 	x = np.linspace(xmin,xmax,100); 
 	p = norm.pdf(x,mu,std); 
 	axarr[3].plot(x,p,'k',linewidth=2); 
-	axarr[3].set_xlim([0,250])
+	axarr[3].set_xlim([0,200])
 	axarr[3].set_ylim([0,0.02]); 
 
 	axarr[4].hist(Greedy,density=True,bins=bins,color='r'); 
@@ -1403,7 +1413,7 @@ def POMCPExploration(save=False):
 	x = np.linspace(xmin,xmax,100); 
 	p = norm.pdf(x,mu,std); 
 	axarr[4].plot(x,p,'k',linewidth=2); 
-	axarr[4].set_xlim([0,250])
+	axarr[4].set_xlim([0,200])
 	axarr[4].set_ylim([0,0.02]); 
 
 	axarr[2].hist(threeTotals,density=True,bins=bins,color='m'); 
@@ -1412,10 +1422,10 @@ def POMCPExploration(save=False):
 	x = np.linspace(xmin,xmax,100); 
 	p = norm.pdf(x,mu,std); 
 	axarr[2].plot(x,p,'k',linewidth=2); 
-	axarr[2].set_xlim([0,250])
+	axarr[2].set_xlim([0,200])
 	axarr[2].set_ylim([0,0.02]); 
 	axarr[2].axvline(np.mean(threeTotals),c='k'); 
-	axarr[2].set_xlabel('3s POMCP');
+	axarr[2].set_xlabel('3s-POMCP');
 
 
 	axarr[1].axvline(np.mean(VB),c='k'); 
@@ -1424,14 +1434,14 @@ def POMCPExploration(save=False):
 	axarr[4].axvline(np.mean(Greedy),c='k'); 
 	axarr[2].axvline(np.mean(threeTotals),c='k'); 
 	plt.subplots_adjust(hspace=0.35)
-	fig.suptitle("HighQ Histograms")
+	fig.suptitle("Average Reward Histograms")
 	#fig.text(0.04,0.5,'PDF', va = 'center',rotation='vertical')
 	axarr[2].set_ylabel('PDF')
 
 	if(save):
-		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Presentations/11_5_18 Nisar Meeting/POMCPHistComp.png');
+		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Journals/TRO 2018/postRev/5partHists.pdf');
 	else:
-		plt.show(); 
+		plt.show();
 
 
 def remake1DBanner(save = False):
@@ -1824,6 +1834,199 @@ def remakeCondensationPlot(save):
 		plt.show();
 
 
+def makeShowcaseAnnotatedTrace(save,dataNum=6):
+	#data = np.load('../results/distances{}.npy'.format(dataNum)); 
+	data = np.load('../results/distances.npy'); 
+	goal = [-2,0,2,2,2,-4,-1,1,-2,-3];
+
+	#print("Dataset Number: {}".format(dataNum)); 
+	#print("Steps: {}".format(len(data))); 
+
+	allArrowX = [[],[],[],[],[]]; 
+	allArrowY = [[],[],[],[],[]];  
+	allArrowU = [[],[],[],[],[]];  
+	allArrowV = [[],[],[],[],[]]; 
+	count = 0; 
+
+	fig,ax = plt.subplots(); 
+
+	for i in range(1,len(data)):
+		x = data[i][0]; 
+
+		allArrowX[0].append(data[i-1][0][0]); 
+		allArrowY[0].append(data[i-1][0][1]); 
+		#arrowC.append('red'); 
+		allArrowU[0].append(data[i][0][0]-data[i-1][0][0]);
+		allArrowV[0].append(data[i][0][1]-data[i-1][0][1]); 
+
+		allArrowX[1].append(data[i-1][0][2]); 
+		allArrowY[1].append(data[i-1][0][3]); 
+		#arrowC.append('red'); 
+		allArrowU[1].append(data[i][0][2]-data[i-1][0][2]);
+		allArrowV[1].append(data[i][0][3]-data[i-1][0][3]); 
+
+		allArrowX[2].append(data[i-1][0][4]); 
+		allArrowY[2].append(data[i-1][0][5]); 
+		#arrowC.append('red'); 
+		allArrowU[2].append(data[i][0][4]-data[i-1][0][4]);
+		allArrowV[2].append(data[i][0][5]-data[i-1][0][5]); 
+
+		allArrowX[3].append(data[i-1][0][6]); 
+		allArrowY[3].append(data[i-1][0][7]); 
+		#arrowC.append('red'); 
+		allArrowU[3].append(data[i][0][6]-data[i-1][0][6]);
+		allArrowV[3].append(data[i][0][7]-data[i-1][0][7]);
+
+		allArrowX[4].append(data[i-1][0][8]); 
+		allArrowY[4].append(data[i-1][0][9]); 
+		#arrowC.append('red'); 
+		allArrowU[4].append(data[i][0][8]-data[i-1][0][8]);
+		allArrowV[4].append(data[i][0][9]-data[i-1][0][9]);
+
+
+
+
+	ax.scatter(0,0,color='r',marker='o',s=100,label='Landmark')
+	ax.quiver(allArrowX[0],allArrowY[0],allArrowU[0],allArrowV[0],color='r',angles = 'xy',scale=1,scale_units='xy',label='Movement'); 
+	ax.quiver(allArrowX[1],allArrowY[1],allArrowU[1],allArrowV[1],color='g',angles = 'xy',scale=1,scale_units='xy'); 
+	ax.quiver(allArrowX[2],allArrowY[2],allArrowU[2],allArrowV[2],color='b',angles = 'xy',scale=1,scale_units='xy'); 
+	ax.quiver(allArrowX[3],allArrowY[3],allArrowU[3],allArrowV[3],color='k',angles = 'xy',scale=1,scale_units='xy'); 
+	ax.quiver(allArrowX[4],allArrowY[4],allArrowU[4],allArrowV[4],color='m',angles = 'xy',scale=1,scale_units='xy'); 
+	ax.scatter(goal[0],goal[1],color='r',marker='x',s=100,label='Goal'); 
+	ax.scatter(goal[2],goal[3],color='g',marker='x',s=100); 
+	ax.scatter(goal[4],goal[5],color='b',marker='x',s=100);
+	ax.scatter(goal[6],goal[7],color='k',marker='x',s=100);
+	ax.scatter(goal[8],goal[9],color='m',marker='x',s=100);
+	ax.set_title("5-Robot Localization Problem"); 
+	ax.set_xlabel("X"); 
+	ax.set_ylabel("Y"); 
+	ax.set_xlim([-5,5]); 
+	ax.set_ylim([-5,5])
+
+
+
+	colors = ['red','green','blue','black','magenta']; 
+	goalPairs = [[-2,0],[2,2],[2,-4],[-1,1],[-2,-3]];
+	for g in goalPairs:
+		if(goalPairs.index(g)==0):
+			c = Circle((g[0],g[1]),1,facecolor='gold',edgecolor=colors[goalPairs.index(g)],alpha=0.25,linewidth=4,label='Goal Radius'); 
+		else:
+			c = Circle((g[0],g[1]),1,facecolor='gold',edgecolor=colors[goalPairs.index(g)],alpha=0.25,linewidth=4); 
+		ax.add_patch(c); 
+
+	ax.set_aspect('equal');
+
+	ax.legend();
+
+	if(save):
+		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Journals/TRO 2018/postRev/annotatedTracesShowcase.pdf',bbox_inches='tight',pad_inches=0.1);
+	else:
+		plt.show();
+
+
+def makeShowcaseStoryboard(save):
+
+	#potential datasets: 
+	#3,6,8,19
+	#_8red,_11black,_37purple,_41purple
+
+	data = np.load('../results/distances6.npy'); 
+	goal = [-2,0,2,2,2,-4,-1,1,-2,-3];
+
+	print("Steps: {}".format(len(data))); 
+
+
+
+	pos = data[:,0]; 
+	bels = data[:,2]
+
+
+	num = 4; 
+	startInd = 30; 
+
+	fig,axarr = plt.subplots(1,num,dpi=200); 
+
+
+	
+	#get beliefs for (startInd:startInd+3)
+	theseBels = bels[startInd:startInd+num]; 
+
+	first = 0; 
+	second = 1; 
+
+	#get only the relevant dims, in this case the first 2
+	newBels = []; 
+	#for b in theseBels:
+	for i in range(0,len(theseBels)):
+		tmpGM = GM(); 
+		#print(i); 
+		for g in theseBels[i]:
+			mean = [g.mean[first],g.mean[second]]; 
+			if(i<2):
+				var = [[g.var[first][first]+1.0,g.var[first][second]+1.0],[g.var[second][first]+1.0,g.var[second][second]+1.0]]; 
+			elif(i==2):
+				if(mean[1]>1):
+					g.weight = g.weight*1.5
+					var = [[g.var[first][first]+.25,g.var[first][second]+.25],[g.var[second][first]+.25,g.var[second][second]+.25]]; 
+				else:
+					var = [[g.var[first][first]+.25,g.var[first][second]+.25],[g.var[second][first]+.25,g.var[second][second]+.25]]; 
+			else:
+				var = [[g.var[first][first]+0.0,g.var[first][second]+0.0],[g.var[second][first]+0.0,g.var[second][second]+0.0]]; 
+			# if(i==2):
+			# 	g.weight = 1/g.weight;  
+			# else:
+			# 	weight = g.weight; 
+			weight = g.weight
+			tmpGM.addG(Gaussian(mean,var,weight)); 
+		tmpGM.normalizeWeights(); 
+		newBels.append(tmpGM); 
+
+	for i in range(0,len(newBels)):
+
+
+		[x,y,c] = newBels[i].plot2D(low=[-5,-5],high=[5.1,5.1],vis=False); 
+		axarr[i].contourf(x,y,c,alpha=0.5); 
+		#axarr[i].scatter(pos[startInd+i][6],pos[startInd+i][7],c='k'); 
+
+		axarr[i].scatter(pos[startInd+i][first],pos[startInd+i][second],c='r',s=20,edgecolor='k'); 
+		axarr[i].scatter(goal[0],goal[1],c='r',s=50,marker='x')
+		axarr[i].quiver([pos[startInd+i-1][first]],[pos[startInd+i-1][second]],[pos[startInd+i][first]-pos[startInd+i-1][first]],[pos[startInd+i][second]-pos[startInd+i-1][second]],angles = 'xy',scale=1,scale_units='xy',facecolor='red',edgecolor='black')
+
+		axarr[i].plot([-1,-5],[1,5],c='k',linestyle='--');
+		axarr[i].plot([1,5],[1,5],c='k',linestyle='--');
+		axarr[i].plot([-1,1],[1,1],c='k',linestyle='--');
+		axarr[i].plot([-1,-5],[-1,-5],c='k',linestyle='--');
+		axarr[i].plot([1,5],[-1,-5],c='k',linestyle='--');
+		axarr[i].plot([1,1],[-1,1],c='k',linestyle='--');
+		axarr[i].plot([-1,-1],[-1,1],c='k',linestyle='--');
+		axarr[i].plot([-1,1],[-1,-1],c='k',linestyle='--'); 
+		#axarr[i].plot([-1,-1],[-1,1],c='k',linestyle='--');
+
+		#axarr[i].plot([-1,-5],[1,5],c='k',linestyle='--');
+		#axarr[i].plot([-1,-5],[1,5],c='k',linestyle='--');
+		axarr[i].set_xlim([-5,5]); 
+		axarr[i].set_ylim([-5,5])
+		c = Circle((goal[first],goal[second]),1,facecolor='gold',edgecolor='red',alpha=0.35,linewidth=2); 
+		axarr[i].add_patch(c); 
+
+	axarr[0].set_xlabel("(A)"); 
+	axarr[1].set_xlabel("(B)"); 
+	axarr[2].set_xlabel("(C)"); 
+	axarr[3].set_xlabel("(D)"); 
+
+
+
+
+	for j in range(0,num):
+		axarr[j].set_aspect('equal'); 
+	#plt.show(); 
+
+	if(save):
+		plt.savefig('../../../../../mnt/c/Users/clbur/OneDrive/Work Docs/Journals/TRO 2018/postRev/StoryboardShowcase.pdf',bbox_inches='tight',pad_inches=0);
+	else:
+		plt.show();
+
+
 if __name__ == '__main__':
 
 	rc('text', usetex=True)
@@ -1836,7 +2039,7 @@ if __name__ == '__main__':
 	#makeLayeredPlot(); 
 
 	#makeHighQPlots(False);
-	#makeLowQPlots(); 
+	#makeLowQPlots(True); 
 
 	#SDExploration(); 
 
@@ -1852,15 +2055,15 @@ if __name__ == '__main__':
 
 	#MMSConfusion(save=False); 
 
-	makeUniObsModel(True)
-	#makeMMSObsModel(); 
+	#makeUniObsModel(True)
+	#makeMMSObsModel(True); 
 	
 	#makeStoryboard(False);
 
 	#combineMMSData();
 
 
-	#POMCPExploration(False); 
+	#POMCPExploration(True); 
 
 	#remake1DBanner(True);
 
@@ -1869,3 +2072,6 @@ if __name__ == '__main__':
 	#remake2DFusionPlot(True);
 
 	#remakeCondensationPlot(True); 
+
+	#makeShowcaseAnnotatedTrace(True); 
+	makeShowcaseStoryboard(True); 

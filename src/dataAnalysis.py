@@ -256,7 +256,7 @@ if __name__ == '__main__':
 	averageFinalReward = {'NCP/NCP':0,'NCP/NCV':0,'NCV/NCP':0,'NCV/NCV':0}; 
 	averageAllReward = {'NCP/NCP':[0]*101,'NCP/NCV':[0]*101,'NCV/NCP':[0]*101,'NCV/NCV':[0]*101}; 
 
-	print(data['NCP/NCP']['Rewards'][0])
+	#print(data['NCP/NCP']['Rewards'][0])
 
 	for key in data.keys():
 		for i in range(0,len(data[key]['Rewards'])): 
@@ -287,7 +287,7 @@ if __name__ == '__main__':
 				suma += (data[key]['Rewards'][j][i] - averageAllReward[key][i])**2; 
 			allSigma[key][i] = np.sqrt(suma/len(data[key]['Rewards'])); 
 
-
+	print(averageFinalReward)
 	print(sigma); 
 
 
